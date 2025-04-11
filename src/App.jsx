@@ -1,0 +1,55 @@
+import { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import ErrorBoundary from './components/ErrorBoundary';
+import Layout from './components/Layout';
+import LandingPage from './pages/LandingPage';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import AddBook from './pages/AddBook';
+import Collection from './pages/Collection';
+import Profile from './pages/Profile';
+import { auth } from './firebase';
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />
+        
+        <Route element={<ProtectedRoute />}>
+          <Route element={<Layout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/collection" element={<Collection />} />
+            <Route path="/add-book" element={<AddBook />} />
+            <Route path="/profile" element={<Profile />} />
+          </Route>
+        </Route>
+
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </ErrorBoundary>
+  );
+}
+
+function ProtectedRoute() {
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(() => {
+      setAuthChecked(true);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (!authChecked) return <div className="loading">Verificando autenticação...</div>;
+
+  return auth.currentUser ? (
+    <ErrorBoundary>
+      <Outlet />
+    </ErrorBoundary>
+  ) : (
+    <Navigate to="/login" replace />
+  );
+}

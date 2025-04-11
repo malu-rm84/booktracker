@@ -1,0 +1,116 @@
+.profile-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #f5f5f5;
+  min-height: 80vh;
+}
+
+.profile-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.profile-card h1 {
+  color: #4b3b8a;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #6c5ce7;
+}
+
+.profile-section {
+  display: flex;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.photo-section {
+  flex: 1;
+  text-align: center;
+}
+
+.profile-photo {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 1rem;
+  border: 3px solid #6c5ce7;
+}
+
+.change-photo-btn {
+  background: #6c5ce7;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+}
+
+.change-photo-btn:hover {
+  background: #5b4bc4;
+  transform: translateY(-2px);
+}
+
+.info-section {
+  flex: 2;
+}
+
+.name-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.name-form label {
+  font-weight: 600;
+  color: #4b3b8a;
+}
+
+.name-form input {
+  padding: 0.8rem;
+  border: 2px solid #e6e4ff;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.name-form input:focus {
+  outline: none;
+  border-color: #6c5ce7;
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+}
+
+.name-form button {
+  background: #6c5ce7;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  align-self: flex-start;
+}
+
+.name-form button:hover {
+  background: #5b4bc4;
+  transform: translateY(-2px);
+}
+
+.user-info p {
+  font-size: 1.1rem;
+  color: #4b3b8a;
+  padding: 0.5rem 0;
+}
+
+@media (max-width: 768px) {
+  .profile-section {
+    flex-direction: column;
+  }
+}
