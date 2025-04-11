@@ -1,13 +1,15 @@
 .collection-container {
-  padding: 2rem;
+  padding: 1rem;
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .collection-title {
   color: var(--roxo-principal);
-  margin-bottom: 2.5rem;
-  font-size: 2.2rem;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
   text-align: center;
 }
 
@@ -15,11 +17,11 @@
 .controls {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 2.5rem;
-  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
   flex-wrap: wrap;
   background-color: #f8f9fa;
-  padding: 1.2rem;
+  padding: 1rem;
   border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
@@ -27,7 +29,8 @@
 .filter-group, .sort-group {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .filter-icon, .sort-icon {
@@ -41,7 +44,7 @@
   border-radius: 8px;
   background: white;
   font-size: 0.95rem;
-  min-width: 180px;
+  min-width: 160px;
 }
 
 .sort-order {
@@ -77,7 +80,7 @@ table {
 }
 
 th, td {
-  padding: 1.2rem 1rem;
+  padding: 1rem 0.8rem;
   text-align: left;
   border-bottom: 1px solid var(--borda);
 }
@@ -98,8 +101,8 @@ tbody tr:last-child td {
 }
 
 .book-cover {
-  width: 60px;
-  height: 90px;
+  width: 50px;
+  height: 75px;
   object-fit: cover;
   border-radius: 6px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -111,8 +114,8 @@ tbody tr:last-child td {
 }
 
 .cover-placeholder {
-  width: 60px;
-  height: 90px;
+  width: 50px;
+  height: 75px;
   background: var(--fundo-claro);
   display: flex;
   align-items: center;
@@ -123,7 +126,7 @@ tbody tr:last-child td {
 }
 
 .status-badge {
-  padding: 0.4rem 1rem;
+  padding: 0.4rem 0.8rem;
   border-radius: 20px;
   font-size: 0.9rem;
   font-weight: 500;
@@ -174,7 +177,7 @@ tbody tr:last-child td {
   cursor: pointer;
   color: var(--roxo-principal);
   font-size: 1.2rem;
-  margin: 0 0.5rem;
+  margin: 0 0.3rem;
   transition: transform 0.2s, color 0.2s;
   padding: 0.4rem;
 }
@@ -202,12 +205,12 @@ tbody tr:last-child td {
 }
 
 .error-screen {
-  padding: 2rem;
+  padding: 1.5rem;
   color: #ff4444;
   text-align: center;
   background: #ffeeee;
   border-radius: 8px;
-  margin: 2rem;
+  margin: 1.5rem;
 }
 
 /* Modal de exclusão */
@@ -223,13 +226,15 @@ tbody tr:last-child td {
   align-items: center;
   z-index: 1000;
   backdrop-filter: blur(3px);
+  padding: 1rem;
 }
 
 .modal-content {
   background: white;
-  padding: 2.5rem;
+  padding: 2rem;
   border-radius: 12px;
   max-width: 400px;
+  width: 100%;
   text-align: center;
   box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
@@ -240,14 +245,14 @@ tbody tr:last-child td {
 }
 
 .modal-actions {
-  margin-top: 2rem;
+  margin-top: 1.5rem;
   display: flex;
-  gap: 1.2rem;
+  gap: 1rem;
   justify-content: center;
 }
 
 .modal-button {
-  padding: 0.7rem 1.8rem;
+  padding: 0.7rem 1.5rem;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -285,12 +290,12 @@ tbody tr:last-child td {
   z-index: 1000;
   backdrop-filter: blur(3px);
   overflow-y: auto;
-  padding: 2rem 0;
+  padding: 1rem;
 }
 
 .edit-form {
   background: white;
-  padding: 2.5rem;
+  padding: 1.5rem;
   border-radius: 12px;
   max-width: 800px;
   width: 100%;
@@ -307,7 +312,7 @@ tbody tr:last-child td {
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: a.5rem;
 }
 
 .form-group label {
@@ -325,6 +330,7 @@ tbody tr:last-child td {
   border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.3s;
+  box-sizing: border-box;
 }
 
 .form-input:focus {
@@ -357,7 +363,7 @@ tbody tr:last-child td {
 .book-info-header {
   display: flex;
   gap: 1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   align-items: flex-start;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--borda);
@@ -423,48 +429,247 @@ tbody tr:last-child td {
   margin-bottom: 1.5rem;
 }
 
+/* Adicione estas regras ao seu arquivo existente */
+
+.form-group input[type="date"] {
+  padding: 0.6rem;
+  border: 2px solid #e6e4ff;
+  border-radius: 8px;
+  width: 100%;
+  font-family: inherit;
+  background: white;
+}
+
+.form-group input[type="date"]:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.status-rating-container {
+  gap: 1.5rem;
+}
+
+.form-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.2rem;
+}
+
+@media (max-width: 768px) {
+  .form-group input[type="date"] {
+    padding: 0.5rem;
+  }
+}
+
+/* Media queries para responsividade */
+@media (max-width: 992px) {
+  .filter-group, .sort-group {
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .filter-select, .sort-select {
+    flex: 1;
+  }
+  
+  .form-grid {
+    gap: 1rem;
+  }
+}
+
 @media (max-width: 768px) {
   .collection-container {
-    padding: 1.5rem 1rem;
+    padding: 1rem;
+  }
+  
+  .collection-title {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
   }
   
   .controls {
     flex-direction: column;
+    align-items: stretch;
     padding: 1rem;
   }
   
-  .filter-select, .sort-select {
-    min-width: 0;
-    flex: 1;
+  .filter-group, .sort-group {
+    width: 100%;
+    justify-content: space-between;
   }
   
-  th, td {
-    padding: 1rem 0.7rem;
+  /* Adaptação da tabela para telas médias */
+  table {
     font-size: 0.9rem;
   }
-
+  
+  th:nth-child(3), /* Autor */
+  td:nth-child(3) {
+    display: none;
+  }
+  
   .form-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
   }
-
+  
   .book-info-header {
     flex-direction: column;
-    text-align: center;
     align-items: center;
+    text-align: center;
   }
   
-  .edit-form {
-    padding: 1.5rem;
+  .modal-content, .edit-form {
+    padding: 1.2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .collection-title {
+    font-size: 1.5rem;
   }
   
-  .modal-content {
-    width: 90%;
-    padding: 1.5rem;
+  .controls {
+    gap: 0.8rem;
+  }
+  
+  .filter-group, .sort-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-icon, .sort-icon {
+    display: none;
+  }
+  
+  /* Adaptação mais radical da tabela para telas pequenas */
+  th, td {
+    padding: 0.7rem 0.5rem;
+  }
+  
+  th:nth-child(2), /* Título */
+  td:nth-child(2) {
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  th:nth-child(4), /* Status */
+  td:nth-child(4) {
+    display: none;
+  }
+  
+  .icon-button {
+    margin: 0 0.2rem;
+    font-size: 1rem;
   }
   
   .modal-actions {
     flex-direction: column;
-    gap: 0.8rem;
   }
+  
+  .modal-button {
+    width: 100%;
+  }
+  
+  /* Versão card para telas muito pequenas */
+  @media (max-width: 480px) {
+    .books-table table {
+      display: block;
+    }
+    
+    .books-table thead {
+      display: none;
+    }
+    
+    .books-table tbody {
+      display: block;
+    }
+    
+    .books-table tr {
+      display: block;
+      margin-bottom: 1rem;
+      border: 1px solid var(--borda);
+      border-radius: 8px;
+      padding: 1rem;
+      background: white;
+    }
+    
+    .books-table td {
+      display: flex;
+      padding: 0.5rem 0;
+      border-bottom: none;
+    }
+    
+    /* Forçar a exibição de todos os dados em formato de card */
+    .books-table td:nth-child(2),
+    .books-table td:nth-child(3),
+    .books-table td:nth-child(4) {
+      display: flex;
+      max-width: none;
+    }
+    
+    .books-table td:before {
+      content: attr(data-label);
+      font-weight: 600;
+      width: 120px;
+      color: var(--roxo-principal);
+    }
+    
+    .books-table td:first-child {
+      justify-content: center;
+      padding-bottom: 1rem;
+    }
+    
+    .books-table td:first-child:before {
+      display: none;
+    }
+    
+    .books-table td:last-child {
+      justify-content: center;
+      padding-top: 1rem;
+      border-top: 1px solid var(--borda);
+    }
+    
+    .books-table td:last-child:before {
+      display: none;
+    }
+    
+    .status-badge {
+      display: inline-flex;
+    }
+  }
+}
+
+/* Adicione no final do arquivo */
+.cover-search-section {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #f8f7ff;
+  border-radius: 8px;
+}
+
+.loading-spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #6c5ce7;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+  margin: 1rem auto;
+}
+
+.cover-options-grid {
+  margin-top: 1rem;
+}
+
+.cover-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

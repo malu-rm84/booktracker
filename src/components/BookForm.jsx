@@ -15,9 +15,21 @@ export default function BookForm({ onSubmit, loading }) {
     synopsis: '',
     cover: '',
     status: 'Não iniciado',
-    rating: 0
+    rating: 0,
+    startDate: '',
+    endDate: ''
   });
   const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+
+  const mergeBookData = (existing, newData) => ({
+    ...existing,
+    ...newData,
+    genre: newData.genre || existing.genre,
+    synopsis: newData.synopsis || existing.synopsis,
+    pages: newData.pages || existing.pages,
+    cover: newData.cover || existing.cover
+  });
 
   useEffect(() => {
     const fetchBookData = async () => {
@@ -25,29 +37,72 @@ export default function BookForm({ onSubmit, loading }) {
       
       setIsSearching(true);
       try {
-        const response = await fetch(
-          `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(debouncedSearchTerm)}&maxResults=1&orderBy=relevance`
-        );
-        
-        if (!response.ok) throw new Error('Livro não encontrado');
-        
-        const data = await response.json();
-        const firstResult = data.items?.[0]?.volumeInfo;
+        const [googleRes, openLibraryRes] = await Promise.all([
+          fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(debouncedSearchTerm)}&maxResults=5`),
+          fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(debouncedSearchTerm)}&limit=5`)
+        ]);
 
-        if (firstResult) {
+        const googleData = await googleRes.json();
+        const openLibraryData = await openLibraryRes.json();
+
+        const googleBook = googleData.items?.[0]?.volumeInfo;
+        const openLibraryBook = openLibraryData.docs?.[0];
+
+        let mergedData = {};
+        
+        if (googleBook) {
+          mergedData = {
+            title: googleBook.title,
+            author: googleBook.authors?.join(', ') || 'Autor desconhecido',
+            genre: googleBook.categories?.join(', ') || 'Gênero não especificado',
+            pages: googleBook.pageCount,
+            synopsis: googleBook.description,
+            cover: googleBook.imageLinks?.thumbnail
+          };
+        }
+
+        if (openLibraryBook) {
+          const olCover = openLibraryBook.cover_i 
+            ? `https://covers.openlibrary.org/b/id/${openLibraryBook.cover_i}-L.jpg`
+            : '';
+
+          mergedData = mergeBookData(mergedData, {
+            title: openLibraryBook.title || mergedData.title,
+            author: openLibraryBook.author_name?.join(', ') || mergedData.author,
+            genre: openLibraryBook.subject?.join(', ') || mergedData.genre,
+            pages: openLibraryBook.number_of_pages_median || mergedData.pages,
+            synopsis: openLibraryBook.first_sentence || mergedData.synopsis,
+            cover: olCover || mergedData.cover
+          });
+        }
+
+        // Coletar todas as capas
+        const allCovers = [];
+        googleData.items?.forEach(item => {
+          if (item.volumeInfo.imageLinks?.thumbnail) {
+            allCovers.push(item.volumeInfo.imageLinks.thumbnail);
+          }
+        });
+        openLibraryData.docs?.forEach(doc => {
+          if (doc.cover_i) {
+            allCovers.push(`https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`);
+          }
+        });
+
+        setSearchResults(allCovers);
+
+        if (googleBook || openLibraryBook) {
           setFormData(prev => ({
             ...prev,
-            title: firstResult.title || '',
-            author: firstResult.authors?.join(', ') || 'Autor desconhecido',
-            genre: firstResult.categories?.[10] || 'Gênero não especificado',
-            pages: firstResult.pageCount || 0,
-            synopsis: firstResult.synopsis || 'Sem descrição disponível',
-            cover: firstResult.imageLinks?.thumbnail || ''
+            ...mergedData,
+            synopsis: mergedData.synopsis || 'Sem descrição disponível',
+            genre: mergedData.genre || 'Gênero não especificado',
+            pages: mergedData.pages || 0,
+            cover: allCovers[0] || prev.cover
           }));
         }
       } catch (error) {
         console.error('Erro na busca:', error);
-        alert('Nenhum livro encontrado. Preencha os dados manualmente.');
       }
       setIsSearching(false);
     };
@@ -73,7 +128,7 @@ export default function BookForm({ onSubmit, loading }) {
         <div className="search-box">
           <input
             type="text"
-            placeholder="Digite o nome do livro"
+            placeholder="Digite o nome do livro para buscar"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -94,6 +149,23 @@ export default function BookForm({ onSubmit, loading }) {
             ) : (
               <div className="cover-placeholder">
                 <FaBook className="placeholder-icon" />
+              </div>
+            )}
+            
+            {searchResults.length > 0 && (
+              <div className="cover-options-grid">
+                <h4>Selecione uma capa:</h4>
+                <div className="cover-options">
+                  {searchResults.map((cover, index) => (
+                    <img
+                      key={index}
+                      src={cover}
+                      alt={`Opção de capa ${index + 1}`}
+                      className={`cover-option ${formData.cover === cover ? 'selected' : ''}`}
+                      onClick={() => setFormData({...formData, cover})}
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -184,14 +256,40 @@ export default function BookForm({ onSubmit, loading }) {
 
             <div className="input-group">
               <label className="input-label">
+                Data de Início
+                <input
+                  type="date"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                  className="text-input"
+                />
+              </label>
+            </div>
+
+            {formData.status === 'Concluído' && (
+              <div className="input-group">
+                <label className="input-label">
+                  Data de Término
+                  <input
+                    type="date"
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                    className="text-input"
+                  />
+                </label>
+              </div>
+            )}
+
+            <div className="input-group">
+              <label className="input-label">
                 Avaliação
                 <div className="rating-container">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <FaStar
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <FaStar
                       key={star}
                       className={`rating-star ${star <= formData.rating ? 'filled' : 'empty'}`}
                       onClick={() => setFormData({...formData, rating: star})}
-                  />
+                    />
                   ))}
                 </div>
               </label>

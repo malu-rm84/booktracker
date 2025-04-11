@@ -1,422 +1,320 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useDebounce } from 'use-debounce';
+import { FaSearch, FaBook, FaStar, FaSpinner, FaPlus } from 'react-icons/fa';
 import { auth } from '../firebase';
-import { collection, doc, query, getDocs, deleteDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase';
-import { FaHeart, FaRegHeart, FaStar, FaTrash, FaSort, FaFilter, FaBook, FaEdit } from 'react-icons/fa';
-import '../styles/collection.css';
+import '../styles/bookform.css';
 
-export default function Collection() {
-  const [books, setBooks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [genreFilter, setGenreFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('title');
-  const [sortOrder, setSortOrder] = useState('asc');
-  const [genres, setGenres] = useState([]);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedBookId, setSelectedBookId] = useState(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedBook, setSelectedBook] = useState(null);
+export default function BookForm({ onSubmit, loading }) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
   const [formData, setFormData] = useState({
     title: '',
     author: '',
     genre: '',
-    status: '',
-    rating: 0,
-    notes: '',
+    pages: 0,
+    synopsis: '',
     cover: '',
-    synopsis: ''
+    status: 'Não iniciado',
+    rating: 0,
+    startDate: '',
+    endDate: ''
+  });
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+
+  const mergeBookData = (existing, newData) => ({
+    ...existing,
+    ...newData,
+    genre: newData.genre || existing.genre,
+    synopsis: newData.synopsis || existing.synopsis,
+    pages: newData.pages || existing.pages,
+    cover: newData.cover || existing.cover
   });
 
   useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const user = auth.currentUser;
-        if (!user) throw new Error('Usuário não autenticado');
-
-        const userRef = doc(db, 'users', user.uid);
-        const booksRef = collection(userRef, 'books');
-        const q = query(booksRef);
-        const querySnapshot = await getDocs(q);
-        
-        const booksData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        
-        setBooks(booksData);
-        extractGenres(booksData);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const extractGenres = (books) => {
-      const uniqueGenres = [...new Set(books.map(book => book.genre))];
-      setGenres(uniqueGenres.filter(genre => genre && genre !== ''));
-    };
-
-    fetchBooks();
-  }, []);
-
-  const handleFavorite = async (bookId) => {
-    try {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      const bookRef = doc(db, 'users', user.uid, 'books', bookId);
-      const book = books.find(b => b.id === bookId);
-      await updateDoc(bookRef, { favorite: !book.favorite });
+    const fetchBookData = async () => {
+      if (!debouncedSearchTerm) return;
       
-      setBooks(books.map(book => 
-        book.id === bookId ? {...book, favorite: !book.favorite} : book
-      ));
-    } catch (error) {
-      setError(error.message);
-    }
-  };
+      setIsSearching(true);
+      try {
+        const [googleRes, openLibraryRes] = await Promise.all([
+          fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(debouncedSearchTerm)}&maxResults=5`),
+          fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(debouncedSearchTerm)}&limit=5`)
+        ]);
 
-  const handleDelete = async () => {
-    try {
-      const user = auth.currentUser;
-      if (!user) return;
+        const googleData = await googleRes.json();
+        const openLibraryData = await openLibraryRes.json();
 
-      const bookRef = doc(db, 'users', user.uid, 'books', selectedBookId);
-      await deleteDoc(bookRef);
-      setBooks(books.filter(book => book.id !== selectedBookId));
-      setShowDeleteModal(false);
-    } catch (error) {
-      setError(error.message);
-      setShowDeleteModal(false);
-    }
-  };
+        const googleBook = googleData.items?.[0]?.volumeInfo;
+        const openLibraryBook = openLibraryData.docs?.[0];
 
-  const handleEditClick = (book) => {
-    setSelectedBook(book);
-    setFormData({
-      title: book.title,
-      author: book.author,
-      genre: book.genre,
-      status: book.status,
-      rating: book.rating || 0,
-      notes: book.notes || '',
-      cover: book.cover || '',
-      synopsis: book.synopsis || ''
-    });
-    setShowEditModal(true);
-  };
-
-  const handleFormChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleRatingChange = (newRating) => {
-    setFormData({ ...formData, rating: newRating });
-  };
-
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const user = auth.currentUser;
-      if (!user || !selectedBook) return;
-
-      const bookRef = doc(db, 'users', user.uid, 'books', selectedBook.id);
-      await updateDoc(bookRef, {
-        status: formData.status,
-        rating: Number(formData.rating),
-        notes: formData.notes
-      });
-
-      setBooks(books.map(book => 
-        book.id === selectedBook.id ? {...book, ...formData} : book
-      ));
-      setShowEditModal(false);
-    } catch (error) {
-      setError(error.message);
-      setShowEditModal(false);
-    }
-  };
-
-  const filteredBooks = books
-    .filter(book => 
-      (statusFilter === 'all' || book.status === statusFilter) &&
-      (genreFilter === 'all' || book.genre === genreFilter)
-    )
-    .sort((a, b) => {
-      if (sortBy === 'title') return sortOrder === 'asc' 
-        ? a.title.localeCompare(b.title) 
-        : b.title.localeCompare(a.title);
-      if (sortBy === 'rating') return sortOrder === 'asc' 
-        ? a.rating - b.rating 
-        : b.rating - a.rating;
-      return 0;
-    });
-
-  const deleteConfirmationModal = () => (
-    <div className="delete-modal">
-      <div className="modal-content">
-        <h3>Confirmar exclusão</h3>
-        <p>Tem certeza que deseja remover este livro da sua coleção?</p>
-        <div className="modal-actions">
-          <button className="modal-button confirm" onClick={handleDelete}>
-            Confirmar
-          </button>
-          <button className="modal-button cancel" onClick={() => setShowDeleteModal(false)}>
-            Cancelar
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  const editModal = () => (
-    <div className="edit-modal">
-      <div className="edit-form">
-        <h3 className="edit-form-title">Editar Livro</h3>
+        let mergedData = {};
         
-        <div className="book-info-header">
-          {formData.cover ? (
-            <img src={formData.cover} alt="Capa" className="book-info-cover" />
-          ) : (
-            <div className="cover-placeholder book-info-cover">
-              <FaBook size={24} />
-            </div>
-          )}
-          <div className="book-info-text">
-            <h4 className="book-title">{formData.title}</h4>
-            <p className="book-author">por {formData.author}</p>
-            <p className="book-genre">Gênero: {formData.genre || 'Não informado'}</p>
-          </div>
-        </div>
+        if (googleBook) {
+          mergedData = {
+            title: googleBook.title,
+            author: googleBook.authors?.join(', ') || 'Autor desconhecido',
+            genre: googleBook.categories?.join(', ') || 'Gênero não especificado',
+            pages: googleBook.pageCount,
+            synopsis: googleBook.description,
+            cover: googleBook.imageLinks?.thumbnail
+          };
+        }
 
-        <form onSubmit={handleEditSubmit}>
-          <div className="form-grid">
-            <div className="form-group">
-              <label>Título</label>
-              <input
-                type="text"
-                value={formData.title}
-                className="form-input read-only-field"
-                readOnly
-              />
-            </div>
+        if (openLibraryBook) {
+          const olCover = openLibraryBook.cover_i 
+            ? `https://covers.openlibrary.org/b/id/${openLibraryBook.cover_i}-L.jpg`
+            : '';
 
-            <div className="form-group">
-              <label>Autor</label>
-              <input
-                type="text"
-                value={formData.author}
-                className="form-input read-only-field"
-                readOnly
-              />
-            </div>
+          mergedData = mergeBookData(mergedData, {
+            title: openLibraryBook.title || mergedData.title,
+            author: openLibraryBook.author_name?.join(', ') || mergedData.author,
+            genre: openLibraryBook.subject?.join(', ') || mergedData.genre,
+            pages: openLibraryBook.number_of_pages_median || mergedData.pages,
+            synopsis: openLibraryBook.first_sentence || mergedData.synopsis,
+            cover: olCover || mergedData.cover
+          });
+        }
 
-            <div className="form-group">
-              <label>Gênero</label>
-              <input
-                type="text"
-                value={formData.genre}
-                className="form-input read-only-field"
-                readOnly
-              />
-            </div>
+        // Coletar todas as capas
+        const allCovers = [];
+        googleData.items?.forEach(item => {
+          if (item.volumeInfo.imageLinks?.thumbnail) {
+            allCovers.push(item.volumeInfo.imageLinks.thumbnail);
+          }
+        });
+        openLibraryData.docs?.forEach(doc => {
+          if (doc.cover_i) {
+            allCovers.push(`https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`);
+          }
+        });
 
-            <div className="form-group full-width">
-                <label>Sinopse</label>
-                <div className="synopsis-display">
-                    {formData.synopsis || 'Nenhuma sinopse disponível'}
-                </div>
-            </div>
+        setSearchResults(allCovers);
 
-            <div className="form-group">
-              <label>Status</label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleFormChange}
-                className="form-input"
-              >
-                <option value="Não iniciado">Não Iniciado</option>
-                <option value="Em andamento">Em Andamento</option>
-                <option value="Concluído">Concluído</option>
-                <option value="Abandonado">Abandonado</option>
-              </select>
-            </div>
+        if (googleBook || openLibraryBook) {
+          setFormData(prev => ({
+            ...prev,
+            ...mergedData,
+            synopsis: mergedData.synopsis || 'Sem descrição disponível',
+            genre: mergedData.genre || 'Gênero não especificado',
+            pages: mergedData.pages || 0,
+            cover: allCovers[0] || prev.cover
+          }));
+        }
+      } catch (error) {
+        console.error('Erro na busca:', error);
+      }
+      setIsSearching(false);
+    };
 
-            <div className="form-group">
-              <label>Avaliação</label>
-              <div className="rating-edit">
-                {[...Array(5)].map((_, index) => (
-                  <FaStar
-                    key={index}
-                    className={`rating-star ${index < formData.rating ? 'filled' : ''}`}
-                    onClick={() => handleRatingChange(index + 1)}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
+    fetchBookData();
+  }, [debouncedSearchTerm]);
 
-          <div className="form-group full-width">
-            <label>Anotações</label>
-            <textarea
-              name="notes"
-              value={formData.notes}
-              onChange={handleFormChange}
-              className="form-input form-textarea"
-              placeholder="Adicione suas anotações..."
-            />
-          </div>
-
-          <div className="modal-actions">
-            <button type="button" className="modal-button cancel" onClick={() => setShowEditModal(false)}>
-              Cancelar
-            </button>
-            <button type="submit" className="modal-button confirm">
-              Salvar Alterações
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-
-  if (loading) return <div className="loading-screen">Carregando...</div>;
-  if (error) return (
-    <div className="error-screen">
-      <h2>Erro ao carregar dados</h2>
-      <p>{error}</p>
-    </div>
-  );
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.title) {
+      alert('Por favor, insira pelo menos o título do livro');
+      return;
+    }
+    onSubmit({
+      ...formData,
+      userId: auth.currentUser?.uid
+    });
+  };
 
   return (
-    <div className="collection-container">
-      <h1 className="collection-title">📚 Sua Coleção</h1>
-      
-      <div className="controls">
-        <div className="filter-group">
-          <FaFilter className="filter-icon" />
-          <select 
-            value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">Todos os Status</option>
-            <option value="Não iniciado">Não Iniciado</option>
-            <option value="Em andamento">Em Andamento</option>
-            <option value="Concluído">Concluído</option>
-            <option value="Abandonado">Abandonado</option>
-          </select>
+    <form onSubmit={handleSubmit} className="book-form">
+      <div className="search-container">
+        <div className="search-box">
+          <input
+            type="text"
+            placeholder="Digite o nome do livro para buscar"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+          {isSearching ? (
+            <div className="loading-spinner"></div>
+          ) : (
+            <FaSearch className="search-icon" />
+          )}
+        </div>
+      </div>
 
-          <select
-            value={genreFilter}
-            onChange={(e) => setGenreFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">Todos os Gêneros</option>
-            {genres.map(genre => (
-              <option key={genre} value={genre}>{genre}</option>
-            ))}
-          </select>
+      <div className="form-container">
+        <div className="book-preview">
+          <div className="cover-container">
+            {formData.cover ? (
+              <img src={formData.cover} alt="Capa do livro" className="book-cover" />
+            ) : (
+              <div className="cover-placeholder">
+                <FaBook className="placeholder-icon" />
+              </div>
+            )}
+            
+            {searchResults.length > 0 && (
+              <div className="cover-options-grid">
+                <h4>Selecione uma capa:</h4>
+                <div className="cover-options">
+                  {searchResults.map((cover, index) => (
+                    <img
+                      key={index}
+                      src={cover}
+                      alt={`Opção de capa ${index + 1}`}
+                      className={`cover-option ${formData.cover === cover ? 'selected' : ''}`}
+                      onClick={() => setFormData({...formData, cover})}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="book-details">
+            <div className="input-group">
+              <label className="input-label">
+                Título
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  className="text-input"
+                  required
+                />
+              </label>
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">
+                Autor
+                <input
+                  type="text"
+                  value={formData.author}
+                  onChange={(e) => setFormData({...formData, author: e.target.value})}
+                  className="text-input"
+                />
+              </label>
+            </div>
+
+            <div className="form-row">
+              <div className="input-group">
+                <label className="input-label">
+                  Gênero
+                  <input
+                    type="text"
+                    value={formData.genre}
+                    onChange={(e) => setFormData({...formData, genre: e.target.value})}
+                    className="text-input"
+                  />
+                </label>
+              </div>
+
+              <div className="input-group">
+                <label className="input-label">
+                  Páginas
+                  <input
+                    type="number"
+                    value={formData.pages || ''}
+                    onChange={(e) => setFormData({...formData, pages: parseInt(e.target.value) || 0})}
+                    className="number-input"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">
+                Sinopse
+                <textarea
+                  value={formData.synopsis}
+                  onChange={(e) => setFormData({...formData, synopsis: e.target.value})}
+                  className="synopsis-textarea"
+                  rows="5"
+                />
+              </label>
+            </div>
+          </div>
         </div>
 
-        <div className="sort-group">
-          <FaSort className="sort-icon" />
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="sort-select"
+        <div className="form-controls">
+          <div className="status-rating-container">
+            <div className="input-group">
+              <label className="input-label">
+                Status
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({...formData, status: e.target.value})}
+                  className="status-select"
+                >
+                  <option value="Não iniciado">Não Iniciado</option>
+                  <option value="Em andamento">Em Andamento</option>
+                  <option value="Concluído">Concluído</option>
+                  <option value="Abandonado">Abandonado</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">
+                Data de Início
+                <input
+                  type="date"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                  className="text-input"
+                />
+              </label>
+            </div>
+
+            {formData.status === 'Concluído' && (
+              <div className="input-group">
+                <label className="input-label">
+                  Data de Término
+                  <input
+                    type="date"
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                    className="text-input"
+                  />
+                </label>
+              </div>
+            )}
+
+            <div className="input-group">
+              <label className="input-label">
+                Avaliação
+                <div className="rating-container">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <FaStar
+                      key={star}
+                      className={`rating-star ${star <= formData.rating ? 'filled' : 'empty'}`}
+                      onClick={() => setFormData({...formData, rating: star})}
+                    />
+                  ))}
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="submit-button"
+            disabled={loading || isSearching}
           >
-            <option value="title">Ordenar por Título</option>
-            <option value="rating">Ordenar por Avaliação</option>
-          </select>
-          <button 
-            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-            className="sort-order"
-          >
-            {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
+            {loading ? (
+              <>
+                <FaSpinner className="button-spinner" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <FaPlus className="button-icon" />
+                Adicionar à Coleção
+              </>
+            )}
           </button>
         </div>
       </div>
-
-      <div className="books-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Capa</th>
-              <th>Título</th>
-              <th>Autor</th>
-              <th>Status</th>
-              <th>Avaliação</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredBooks.length > 0 ? (
-              filteredBooks.map(book => (
-                <tr key={book.id}>
-                  <td>
-                    {book.cover ? (
-                      <img src={book.cover} alt={book.title} className="book-cover" />
-                    ) : (
-                      <div className="cover-placeholder">
-                        <FaBook />
-                      </div>
-                    )}
-                  </td>
-                  <td>{book.title}</td>
-                  <td>{book.author}</td>
-                  <td>
-                    <span className={`status-badge ${book.status.toLowerCase().replace(' ', '-')}`}>
-                      {book.status}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="rating-stars">
-                      {[...Array(5)].map((_, index) => (
-                        <FaStar
-                          key={index}
-                          className={index < book.rating ? 'filled' : 'empty'}
-                        />
-                      ))}
-                    </div>
-                  </td>
-                  <td className="actions-cell">
-                    <button onClick={() => handleFavorite(book.id)} className="icon-button" title="Favoritar">
-                      {book.favorite ? <FaHeart /> : <FaRegHeart />}
-                    </button>
-                    <button onClick={() => handleEditClick(book)} className="icon-button" title="Editar">
-                      <FaEdit />
-                    </button>
-                    <button 
-                      onClick={() => {
-                        setSelectedBookId(book.id);
-                        setShowDeleteModal(true);
-                      }} 
-                      className="icon-button"
-                      title="Remover"
-                    >
-                      <FaTrash />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className="no-books-message">
-                  Nenhum livro encontrado com os filtros selecionados.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {showDeleteModal && deleteConfirmationModal()}
-      {showEditModal && editModal()}
-    </div>
+    </form>
   );
 }

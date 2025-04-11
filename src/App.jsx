@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import AddBook from './pages/AddBook';
 import Collection from './pages/Collection';
 import Profile from './pages/Profile';
+import FoldersPage from './pages/FoldersPage';
 import { auth } from './firebase';
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/collection" element={<Collection />} />
+            <Route path="/folders" element={<FoldersPage />} />
             <Route path="/add-book" element={<AddBook />} />
             <Route path="/profile" element={<Profile />} />
           </Route>

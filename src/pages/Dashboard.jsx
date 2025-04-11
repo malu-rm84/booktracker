@@ -3,7 +3,7 @@ import { auth } from '../firebase';
 import { collection, doc, getDocs, query } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Link } from 'react-router-dom';
-import { FaBook, FaStar, FaHeart, FaPlus } from 'react-icons/fa';
+import { FaBook, FaStar, FaHeart, FaPlus, FaBookOpen } from 'react-icons/fa';
 import '../styles/dashboard.css';
 
 export default function Dashboard() {
@@ -71,7 +71,7 @@ export default function Dashboard() {
         </div>
 
         <div className="stat-card dark-purple">
-          <FaBook className="stat-icon" />
+          <FaBookOpen className="stat-icon" />
           <h3>Livros Lidos</h3>
           <p>{stats.read}</p>
         </div>

@@ -1,135 +1,178 @@
+/* Ajustes para o layout da aplicação */
 .app-container {
   display: flex;
   min-height: 100vh;
+  position: relative;
 }
 
 .sidebar {
-  width: 250px;
-  background: #4b3b8a;
-  padding: 1.5rem;
+  width: 280px;
+  background-color: var(--roxo-principal);
+  color: white;
+  height: 100vh;
   position: fixed;
-  height: 100%;
-  z-index: 1000;
-}
-
-.nav-menu {
+  left: 0;
+  top: 0;
+  z-index: 100;
+  transition: transform 0.3s ease-in-out;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.nav-item {
-  color: white;
-  text-decoration: none;
-  padding: 1rem;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: all 0.3s ease;
-}
-
-.nav-item:hover {
-  background: #6c5ce7;
-}
-
-.nav-item.active {
-  background: #6c5ce7;
-  font-weight: 600;
-}
-
-.nav-icon {
-  font-size: 1.2rem;
+  overflow-y: auto;
 }
 
 .main-content {
   flex: 1;
-  margin-left: 250px;
-  padding: 2rem;
-  position: relative;
-  z-index: 1;
+  margin-left: 280px; /* Mesmo tamanho da sidebar */
+  transition: margin-left 0.3s ease-in-out;
+  width: calc(100% - 280px);
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
-/* Estilos atualizados para a área do usuário */
-.user-info {
-  padding: 2rem 1rem;
-  background: #4b3b8a;
+/* Menu toggle para mobile */
+.menu-toggle {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 110;
+  background: var(--roxo-principal);
   color: white;
-  border-radius: 12px;
-  margin-bottom: 2rem;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+/* Usuário info */
+.user-info {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .user-photo {
-  width: 100px;
-  height: 100px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   object-fit: cover;
-  margin: 0 auto 1.5rem;
-  border: 3px solid rgba(255,255,255,0.1);
+  margin-right: 1rem;
 }
 
 .user-details {
-  width: 100%;
+  flex: 1;
 }
 
 .user-name {
-  display: block;
   font-weight: 600;
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  display: block;
 }
 
 .logout-button {
-  background: transparent;
-  border: 2px solid rgba(255,255,255,0.3);
+  background: none;
+  border: none;
   color: white;
-  padding: 0.8rem 1.5rem;
-  border-radius: 25px;
-  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: all 0.3s;
-  width: 100%;
-  justify-content: center;
-  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
 }
 
 .logout-button:hover {
-  background: rgba(255,255,255,0.15);
-  border-color: white;
-  transform: translateY(-1px);
+  opacity: 1;
 }
 
-@media (max-width: 768px) {
+/* Menu de navegação */
+.nav-menu {
+  padding: 1rem 0;
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 1.5rem;
+  color: white;
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity 0.2s, background-color 0.2s;
+}
+
+.nav-item:hover {
+  opacity: 1;
+  background-color: rgba(255,255,255,0.1);
+}
+
+.nav-item.active {
+  opacity: 1;
+  background-color: rgba(255,255,255,0.15);
+  border-left: 4px solid white;
+}
+
+.nav-icon {
+  margin-right: 1rem;
+  font-size: 1.2rem;
+}
+
+/* Responsividade */
+@media (max-width: 968px) {
   .sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-    padding: 1rem;
+    transform: translateX(-100%);
+    width: 250px;
   }
-
-  .nav-menu {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
+  
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
   }
-
-  .nav-item span {
-    display: none;
-  }
-
+  
   .main-content {
     margin-left: 0;
-    padding: 1rem;
+    width: 100%;
+    padding-top: 70px; /* Espaço para o botão do menu */
   }
+  
+  /* Quando o menu está aberto, adiciona um overlay para facilitar o fechamento */
+  .sidebar.open + .main-content::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 99;
+    transition: opacity 0.3s;
+    pointer-events: all;
+  }
+}
 
+/* Ajustes adicionais para telas pequenas */
+@media (max-width: 576px) {
+  .sidebar {
+    width: 100%;
+    max-width: 280px;
+  }
+  
+  .user-info {
+    padding: 1rem;
+    flex-direction: column;
+    text-align: center;
+  }
+  
   .user-photo {
-    width: 80px;
-    height: 80px;
+    margin-right: 0;
+    margin-bottom: 0.5rem;
   }
 }
