@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useDebounce } from 'use-debounce';
 import { FaSearch, FaBook, FaStar, FaSpinner, FaPlus } from 'react-icons/fa';
 import { auth } from '../firebase';
+import { fetchBookData } from '../services/bookApi';
 import '../styles/bookform.css';
 
 export default function BookForm({ onSubmit, loading }) {
@@ -22,84 +23,23 @@ export default function BookForm({ onSubmit, loading }) {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
 
-  const mergeBookData = (existing, newData) => ({
-    ...existing,
-    ...newData,
-    genre: newData.genre || existing.genre,
-    synopsis: newData.synopsis || existing.synopsis,
-    pages: newData.pages || existing.pages,
-    cover: newData.cover || existing.cover
-  });
-
   useEffect(() => {
-    const fetchBookData = async () => {
+    const fetchBook = async () => {
       if (!debouncedSearchTerm) return;
-      
       setIsSearching(true);
       try {
-        const [googleRes, openLibraryRes] = await Promise.all([
-          fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(debouncedSearchTerm)}&maxResults=5`),
-          fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(debouncedSearchTerm)}&limit=5`)
-        ]);
-
-        const googleData = await googleRes.json();
-        const openLibraryData = await openLibraryRes.json();
-
-        const googleBook = googleData.items?.[0]?.volumeInfo;
-        const openLibraryBook = openLibraryData.docs?.[0];
-
-        let mergedData = {};
-        
-        if (googleBook) {
-          mergedData = {
-            title: googleBook.title,
-            author: googleBook.authors?.join(', ') || 'Autor desconhecido',
-            genre: googleBook.categories?.join(', ') || 'Gênero não especificado',
-            pages: googleBook.pageCount,
-            synopsis: googleBook.description,
-            cover: googleBook.imageLinks?.thumbnail
-          };
-        }
-
-        if (openLibraryBook) {
-          const olCover = openLibraryBook.cover_i 
-            ? `https://covers.openlibrary.org/b/id/${openLibraryBook.cover_i}-L.jpg`
-            : '';
-
-          mergedData = mergeBookData(mergedData, {
-            title: openLibraryBook.title || mergedData.title,
-            author: openLibraryBook.author_name?.join(', ') || mergedData.author,
-            genre: openLibraryBook.subject?.join(', ') || mergedData.genre,
-            pages: openLibraryBook.number_of_pages_median || mergedData.pages,
-            synopsis: openLibraryBook.first_sentence || mergedData.synopsis,
-            cover: olCover || mergedData.cover
-          });
-        }
-
-        // Coletar todas as capas
-        const allCovers = [];
-        googleData.items?.forEach(item => {
-          if (item.volumeInfo.imageLinks?.thumbnail) {
-            allCovers.push(item.volumeInfo.imageLinks.thumbnail);
-          }
-        });
-        openLibraryData.docs?.forEach(doc => {
-          if (doc.cover_i) {
-            allCovers.push(`https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`);
-          }
-        });
-
-        setSearchResults(allCovers);
-
-        if (googleBook || openLibraryBook) {
+        const data = await fetchBookData(debouncedSearchTerm);
+        if (data) {
           setFormData(prev => ({
             ...prev,
-            ...mergedData,
-            synopsis: mergedData.synopsis || 'Sem descrição disponível',
-            genre: mergedData.genre || 'Gênero não especificado',
-            pages: mergedData.pages || 0,
-            cover: allCovers[0] || prev.cover
+            title: data.title || prev.title,
+            author: data.authors || prev.author,
+            genre: data.genres || prev.genre,
+            synopsis: data.description || 'Sem descrição disponível',
+            pages: data.pageCount || 0,
+            cover: data.images?.[0] || prev.cover
           }));
+          setSearchResults(data.images || []);
         }
       } catch (error) {
         console.error('Erro na busca:', error);
@@ -107,7 +47,7 @@ export default function BookForm({ onSubmit, loading }) {
       setIsSearching(false);
     };
 
-    fetchBookData();
+    fetchBook();
   }, [debouncedSearchTerm]);
 
   const handleSubmit = (e) => {
@@ -151,7 +91,7 @@ export default function BookForm({ onSubmit, loading }) {
                 <FaBook className="placeholder-icon" />
               </div>
             )}
-            
+
             {searchResults.length > 0 && (
               <div className="cover-options-grid">
                 <h4>Selecione uma capa:</h4>
@@ -169,7 +109,7 @@ export default function BookForm({ onSubmit, loading }) {
               </div>
             )}
           </div>
-          
+
           <div className="book-details">
             <div className="input-group">
               <label className="input-label">
@@ -218,6 +158,9 @@ export default function BookForm({ onSubmit, loading }) {
                     onChange={(e) => setFormData({...formData, pages: parseInt(e.target.value) || 0})}
                     className="number-input"
                   />
+                  {formData.pages === 0 && (
+                    <p style={{ color: 'orange' }}>⚠️ Número de páginas não disponível.</p>
+                  )}
                 </label>
               </div>
             </div>
@@ -303,13 +246,11 @@ export default function BookForm({ onSubmit, loading }) {
           >
             {loading ? (
               <>
-                <FaSpinner className="button-spinner" />
-                Salvando...
+                <FaSpinner className="button-spinner" /> Salvando...
               </>
             ) : (
               <>
-                <FaPlus className="button-icon" />
-                Adicionar à Coleção
+                <FaPlus className="button-icon" /> Adicionar à Coleção
               </>
             )}
           </button>
