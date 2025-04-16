@@ -391,6 +391,72 @@ tbody tr:last-child td {
   overflow: hidden;
 }
 
+/* collection.css */
+.change-cover-button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: #6c5ce7;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.change-cover-button:hover {
+  background: #5b4bc4;
+}
+
+.cover-preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.current-cover {
+  width: 150px;
+  height: 225px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.cover-selector-modal {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f8f7ff;
+  border-radius: 8px;
+  border: 1px solid #e6e4ff;
+}
+
+.cover-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.cover-option {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  border: 2px solid transparent;
+}
+
+.cover-option:hover {
+  transform: scale(1.05);
+}
+
+.cover-option.selected {
+  border-color: #6c5ce7;
+  box-shadow: 0 0 8px rgba(108, 92, 231, 0.3);
+}
+
 .book-info-header {
   display: flex;
   gap: 1.5rem;

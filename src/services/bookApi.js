@@ -1,33 +1,50 @@
 import axios from 'axios';
 
 const GOOGLE_BOOKS_API = 'https://www.googleapis.com/books/v1/volumes?q=';
+const OPEN_LIBRARY_API = 'https://openlibrary.org/search.json?q=';
 
 export async function fetchBookData(bookName) {
     try {
-        const response = await axios.get(`${GOOGLE_BOOKS_API}${encodeURIComponent(bookName)}`);
-        const items = response.data.items || [];
+        // Busca paralela nas duas APIs
+        const [googleResponse, openLibraryResponse] = await Promise.allSettled([
+            axios.get(`${GOOGLE_BOOKS_API}${encodeURIComponent(bookName)}`),
+            axios.get(`${OPEN_LIBRARY_API}${encodeURIComponent(bookName)}&limit=5`)
+        ]);
 
-        if (!items.length) return null;
+        const googleBooks = googleResponse.value?.data?.items || [];
+        const openLibraryBooks = openLibraryResponse.value?.data?.docs || [];
 
-        const matchingBooks = items.filter(item => {
+        // Processa resultados do Google Books
+        const matchingGoogleBooks = googleBooks.filter(item => {
             const volumeTitle = item.volumeInfo?.title?.toLowerCase() || '';
             return volumeTitle.includes(bookName.toLowerCase());
         });
 
-        if (!matchingBooks.length) return null;
+        // Coleta capas de ambas as fontes
+        const googleCovers = matchingGoogleBooks
+            .map(item => item.volumeInfo?.imageLinks?.thumbnail?.replace('http://', 'https://'))
+            .filter(Boolean);
 
-        const book = matchingBooks[0].volumeInfo;
+        const openLibraryCovers = openLibraryBooks
+            .map(book => book.cover_edition_key 
+                ? `https://covers.openlibrary.org/b/olid/${book.cover_edition_key}-L.jpg` 
+                : null)
+            .filter(Boolean);
+
+        // Combina e remove capas duplicadas
+        const combinedCovers = [...new Set([...googleCovers, ...openLibraryCovers])];
+
+        // Mantém dados principais do primeiro livro correspondente do Google
+        const mainBook = matchingGoogleBooks[0]?.volumeInfo || {};
 
         return {
-            title: book.title || '',
-            authors: book.authors ? book.authors.join(', ') : '',
-            genres: book.categories ? book.categories.slice(0, 5).join(', ') : '',
-            description: book.description || '',
-            pageCount: Number.isInteger(book.pageCount) ? book.pageCount : null,  // <-- null quando não disponível
-            averageRating: book.averageRating || 0,  // <-- nota média adicionada
-            images: matchingBooks
-                .map(item => item.volumeInfo?.imageLinks?.thumbnail)
-                .filter(Boolean)
+            title: mainBook.title || '',
+            authors: mainBook.authors ? mainBook.authors.join(', ') : '',
+            genres: mainBook.categories ? mainBook.categories.slice(0, 5).join(', ') : '',
+            description: mainBook.description || '',
+            pageCount: Number.isInteger(mainBook.pageCount) ? mainBook.pageCount : null,
+            averageRating: mainBook.averageRating || 0,
+            images: combinedCovers
         };
 
     } catch (error) {

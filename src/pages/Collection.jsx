@@ -4,6 +4,7 @@ import { collection, doc, query, getDocs, deleteDoc, updateDoc } from 'firebase/
 import { db } from '../firebase';
 import { FaHeart, FaRegHeart, FaStar, FaTrash, FaSort, FaFilter, FaBook, FaEdit, FaStarHalfAlt } from 'react-icons/fa';
 import '../styles/collection.css';
+import { fetchBookData } from '../services/bookApi';
 
 export default function Collection() {
   const [books, setBooks] = useState([]);
@@ -18,6 +19,9 @@ export default function Collection() {
   const [selectedBookId, setSelectedBookId] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
+  const [showCoverSelector, setShowCoverSelector] = useState(false);
+  const [coverSearchResults, setCoverSearchResults] = useState([]);
+  const [isSearchingCovers, setIsSearchingCovers] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     author: '',
@@ -61,6 +65,30 @@ export default function Collection() {
 
     fetchBooks();
   }, []);
+
+  const handleCoverSearch = async () => {
+    try {
+      setIsSearchingCovers(true);
+      const data = await fetchBookData(formData.title);
+      
+      // Garantir que as capas sejam URLs válidas
+      const validCovers = data?.images?.filter(url => 
+        url.startsWith('http') && (url.includes('googleapis') || url.includes('openlibrary.org'))
+      ) || [];
+      
+      setCoverSearchResults(validCovers);
+    } catch (error) {
+      console.error('Erro na busca de capas:', error);
+      setCoverSearchResults([]);
+    } finally {
+      setIsSearchingCovers(false);
+    }
+  };
+  
+  const handleCoverChange = (newCover) => {
+    setFormData(prev => ({ ...prev, cover: newCover }));
+    setShowCoverSelector(false);
+  };
 
   const handleFavorite = async (bookId) => {
     try {
@@ -117,6 +145,7 @@ export default function Collection() {
     setFormData({ ...formData, rating: newRating });
   };
 
+  // Collection.jsx
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -125,9 +154,8 @@ export default function Collection() {
 
       const bookRef = doc(db, 'users', user.uid, 'books', selectedBook.id);
       await updateDoc(bookRef, {
-        status: formData.status,
-        rating: Number(formData.rating),
-        notes: formData.notes
+        ...formData,
+        cover: formData.cover // Adiciona a nova capa
       });
 
       setBooks(books.map(book =>
@@ -213,17 +241,66 @@ export default function Collection() {
 
         <form onSubmit={handleEditSubmit}>
           <div className="form-grid">
+            <div className="form-group full-width">
+              <label>Capa do Livro</label>
+              <div className="cover-preview-container">
+                {formData.cover ? (
+                  <img src={formData.cover} alt="Capa atual" className="current-cover" />
+                ) : (
+                  <div className="cover-placeholder">
+                    <FaBook />
+                  </div>
+                )}
+                
+                <button
+                  type="button"
+                  className="change-cover-button"
+                  onClick={() => {
+                    setShowCoverSelector(!showCoverSelector);
+                    if (!showCoverSelector) handleCoverSearch();
+                  }}
+                >
+                  {showCoverSelector ? 'Fechar Opções' : 'Alterar Capa'}
+                </button>
+              </div>
+
+              {showCoverSelector && (
+                <div className="cover-selector-modal">
+                  {isSearchingCovers ? (
+                    <div className="loading-spinner"></div>
+                  ) : (
+                    <>
+                      <h4>Selecione uma nova capa:</h4>
+                      <div className="cover-options-grid">
+                        {coverSearchResults.map((cover, index) => (
+                          <img
+                            key={index}
+                            src={cover}
+                            alt={`Opção de capa ${index + 1}`}
+                            className={`cover-option ${formData.cover === cover ? 'selected' : ''}`}
+                            onClick={() => handleCoverChange(cover)}
+                          />
+                        ))}
+                      </div>
+                      {coverSearchResults.length === 0 && (
+                        <p>Nenhuma capa alternativa encontrada.</p>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
             <div className="form-group">
               <label>Título</label>
-              <input type="text" value={formData.title} className="form-input read-only-field" readOnly />
+              <input type="text" value={formData.title} className="form-input" />
             </div>
             <div className="form-group">
               <label>Autor</label>
-              <input type="text" value={formData.author} className="form-input read-only-field" readOnly />
+              <input type="text" value={formData.author} className="form-input" />
             </div>
             <div className="form-group">
               <label>Gênero</label>
-              <input type="text" value={formData.genre} className="form-input read-only-field" readOnly />
+              <input type="text" value={formData.genre} className="form-input" />
             </div>
             <div className="form-group full-width">
               <label>Sinopse</label>

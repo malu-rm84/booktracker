@@ -24,6 +24,7 @@ export default function BookForm({ onSubmit, loading }) {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
 
+  // BookForm.jsx
   useEffect(() => {
     const fetchBook = async () => {
       if (!debouncedSearchTerm) return;
