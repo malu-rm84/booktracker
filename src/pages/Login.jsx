@@ -1,7 +1,8 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
 import '../styles/login.css';
+import { FaGoogle, FaArrowLeft } from 'react-icons/fa';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -18,14 +19,31 @@ export default function Login() {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h2>Faça login para continuar</h2>
+        <div className="app-logo">
+          <span className="book-icon">📚</span>
+          <h1>BookTracker</h1>
+        </div>
+        
+        <h2>Bem-vindo de volta</h2>
+        <p className="login-subtitle">Continue sua jornada literária</p>
+        
         <button className="google-login-btn" onClick={handleGoogleLogin}>
-          <img src="google-icon.svg" alt="Google" />
-          Entrar com Google
+          <FaGoogle className="google-icon" />
+          <span>Entrar com Google</span>
         </button>
-        <p className="back-link">
-          <a href="/">← Voltar para a página inicial</a>
-        </p>
+        
+        <div className="separator">
+          <span>ou</span>
+        </div>
+        
+        <div className="demo-account">
+          <p>Quer apenas conhecer a plataforma?</p>
+          <button className="demo-btn">Acessar conta demonstrativa</button>
+        </div>
+        
+        <Link to="/" className="back-link">
+          <FaArrowLeft /> Voltar para a página inicial
+        </Link>
       </div>
     </div>
   );

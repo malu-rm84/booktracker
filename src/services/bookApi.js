@@ -9,7 +9,6 @@ export async function fetchBookData(bookName) {
 
         if (!items.length) return null;
 
-        // Filtrar livros cujo título realmente bate com a busca
         const matchingBooks = items.filter(item => {
             const volumeTitle = item.volumeInfo?.title?.toLowerCase() || '';
             return volumeTitle.includes(bookName.toLowerCase());
@@ -22,9 +21,10 @@ export async function fetchBookData(bookName) {
         return {
             title: book.title || '',
             authors: book.authors ? book.authors.join(', ') : '',
-            genres: book.categories ? book.categories.join(', ') : '',
+            genres: book.categories ? book.categories.slice(0, 5).join(', ') : '',
             description: book.description || '',
-            pageCount: Number.isInteger(book.pageCount) ? book.pageCount : 0,
+            pageCount: Number.isInteger(book.pageCount) ? book.pageCount : null,  // <-- null quando não disponível
+            averageRating: book.averageRating || 0,  // <-- nota média adicionada
             images: matchingBooks
                 .map(item => item.volumeInfo?.imageLinks?.thumbnail)
                 .filter(Boolean)

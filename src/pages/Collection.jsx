@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { auth } from '../firebase';
 import { collection, doc, query, getDocs, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { FaHeart, FaRegHeart, FaStar, FaTrash, FaSort, FaFilter, FaBook, FaEdit } from 'react-icons/fa';
+import { FaHeart, FaRegHeart, FaStar, FaTrash, FaSort, FaFilter, FaBook, FaEdit, FaStarHalfAlt } from 'react-icons/fa';
 import '../styles/collection.css';
 
 export default function Collection() {
@@ -39,12 +39,12 @@ export default function Collection() {
         const booksRef = collection(userRef, 'books');
         const q = query(booksRef);
         const querySnapshot = await getDocs(q);
-        
+
         const booksData = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
-        
+
         setBooks(booksData);
         extractGenres(booksData);
       } catch (err) {
@@ -70,9 +70,9 @@ export default function Collection() {
       const bookRef = doc(db, 'users', user.uid, 'books', bookId);
       const book = books.find(b => b.id === bookId);
       await updateDoc(bookRef, { favorite: !book.favorite });
-      
-      setBooks(books.map(book => 
-        book.id === bookId ? {...book, favorite: !book.favorite} : book
+
+      setBooks(books.map(book =>
+        book.id === bookId ? { ...book, favorite: !book.favorite } : book
       ));
     } catch (error) {
       setError(error.message);
@@ -130,8 +130,8 @@ export default function Collection() {
         notes: formData.notes
       });
 
-      setBooks(books.map(book => 
-        book.id === selectedBook.id ? {...book, ...formData} : book
+      setBooks(books.map(book =>
+        book.id === selectedBook.id ? { ...book, ...formData } : book
       ));
       setShowEditModal(false);
     } catch (error) {
@@ -140,17 +140,36 @@ export default function Collection() {
     }
   };
 
+  const renderRatingStars = (value) => {
+    const sanitizedValue = Math.min(Math.max(Number(value) || 0, 0), 5);
+    const fullStars = Math.floor(sanitizedValue);
+    const hasHalfStar = sanitizedValue % 1 >= 0.5 && sanitizedValue < 5;
+    const emptyStars = Math.max(5 - fullStars - (hasHalfStar ? 1 : 0), 0);
+  
+    return (
+      <div className="rating-container">
+        {[...Array(fullStars)].map((_, i) => (
+          <FaStar key={`full-${i}`} className="rating-star filled" />
+        ))}
+        {hasHalfStar && <FaStarHalfAlt className="rating-star half-filled" />}
+        {[...Array(emptyStars)].map((_, i) => (
+          <FaStar key={`empty-${i}`} className="rating-star empty" />
+        ))}
+      </div>
+    );
+  };
+
   const filteredBooks = books
-    .filter(book => 
+    .filter(book =>
       (statusFilter === 'all' || book.status === statusFilter) &&
       (genreFilter === 'all' || book.genre === genreFilter)
     )
     .sort((a, b) => {
-      if (sortBy === 'title') return sortOrder === 'asc' 
-        ? a.title.localeCompare(b.title) 
+      if (sortBy === 'title') return sortOrder === 'asc'
+        ? a.title.localeCompare(b.title)
         : b.title.localeCompare(a.title);
-      if (sortBy === 'rating') return sortOrder === 'asc' 
-        ? a.rating - b.rating 
+      if (sortBy === 'rating') return sortOrder === 'asc'
+        ? a.rating - b.rating
         : b.rating - a.rating;
       return 0;
     });
@@ -176,7 +195,7 @@ export default function Collection() {
     <div className="edit-modal">
       <div className="edit-form">
         <h3 className="edit-form-title">Editar Livro</h3>
-        
+
         <div className="book-info-header">
           {formData.cover ? (
             <img src={formData.cover} alt="Capa" className="book-info-cover" />
@@ -196,41 +215,22 @@ export default function Collection() {
           <div className="form-grid">
             <div className="form-group">
               <label>Título</label>
-              <input
-                type="text"
-                value={formData.title}
-                className="form-input read-only-field"
-                readOnly
-              />
+              <input type="text" value={formData.title} className="form-input read-only-field" readOnly />
             </div>
-
             <div className="form-group">
               <label>Autor</label>
-              <input
-                type="text"
-                value={formData.author}
-                className="form-input read-only-field"
-                readOnly
-              />
+              <input type="text" value={formData.author} className="form-input read-only-field" readOnly />
             </div>
-
             <div className="form-group">
               <label>Gênero</label>
-              <input
-                type="text"
-                value={formData.genre}
-                className="form-input read-only-field"
-                readOnly
-              />
+              <input type="text" value={formData.genre} className="form-input read-only-field" readOnly />
             </div>
-
             <div className="form-group full-width">
-                <label>Sinopse</label>
-                <div className="synopsis-display">
-                    {formData.synopsis || 'Nenhuma sinopse disponível'}
-                </div>
+              <label>Sinopse</label>
+              <div className="synopsis-display">
+                {formData.synopsis || 'Nenhuma sinopse disponível'}
+              </div>
             </div>
-
             <div className="form-group">
               <label>Status</label>
               <select
@@ -247,15 +247,46 @@ export default function Collection() {
             </div>
 
             <div className="form-group">
+              <label>Data de Início</label>
+              <input
+                type="date"
+                name="startDate"
+                value={formData.startDate}
+                onChange={handleFormChange}
+                className="form-input"
+              />
+            </div>
+
+            {formData.status === 'Concluído' && (
+              <div className="form-group">
+                <label>Data de Término</label>
+                <input
+                  type="date"
+                  name="endDate"
+                  value={formData.endDate}
+                  onChange={handleFormChange}
+                  className="form-input"
+                />
+              </div>
+            )}
+
+            <div className="form-group">
               <label>Avaliação</label>
-              <div className="rating-edit">
-                {[...Array(5)].map((_, index) => (
-                  <FaStar
-                    key={index}
-                    className={`rating-star ${index < formData.rating ? 'filled' : ''}`}
-                    onClick={() => handleRatingChange(index + 1)}
-                  />
-                ))}
+              <input
+                type="number"
+                min="0"
+                max="5"
+                step="0.5"
+                value={formData.rating}
+                onChange={(e) => {
+                  const rawValue = parseFloat(e.target.value);
+                  const validatedValue = Math.min(Math.max(isNaN(rawValue) ? 0 : rawValue, 0), 5);
+                  handleRatingChange(validatedValue);
+                }}
+                className="rating-input"
+              />
+              <div className="rating-display">
+                {renderRatingStars(formData.rating)}
               </div>
             </div>
           </div>
@@ -270,7 +301,6 @@ export default function Collection() {
               placeholder="Adicione suas anotações..."
             />
           </div>
-
           <div className="modal-actions">
             <button type="button" className="modal-button cancel" onClick={() => setShowEditModal(false)}>
               Cancelar
@@ -295,15 +325,11 @@ export default function Collection() {
   return (
     <div className="collection-container">
       <h1 className="collection-title">📚 Sua Coleção</h1>
-      
+
       <div className="controls">
         <div className="filter-group">
           <FaFilter className="filter-icon" />
-          <select 
-            value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="filter-select"
-          >
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="filter-select">
             <option value="all">Todos os Status</option>
             <option value="Não iniciado">Não Iniciado</option>
             <option value="Em andamento">Em Andamento</option>
@@ -311,11 +337,7 @@ export default function Collection() {
             <option value="Abandonado">Abandonado</option>
           </select>
 
-          <select
-            value={genreFilter}
-            onChange={(e) => setGenreFilter(e.target.value)}
-            className="filter-select"
-          >
+          <select value={genreFilter} onChange={(e) => setGenreFilter(e.target.value)} className="filter-select">
             <option value="all">Todos os Gêneros</option>
             {genres.map(genre => (
               <option key={genre} value={genre}>{genre}</option>
@@ -325,18 +347,11 @@ export default function Collection() {
 
         <div className="sort-group">
           <FaSort className="sort-icon" />
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="sort-select"
-          >
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="sort-select">
             <option value="title">Ordenar por Título</option>
             <option value="rating">Ordenar por Avaliação</option>
           </select>
-          <button 
-            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-            className="sort-order"
-          >
+          <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="sort-order">
             {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
           </button>
         </div>
@@ -374,16 +389,7 @@ export default function Collection() {
                       {book.status}
                     </span>
                   </td>
-                  <td>
-                    <div className="rating-stars">
-                      {[...Array(5)].map((_, index) => (
-                        <FaStar
-                          key={index}
-                          className={index < book.rating ? 'filled' : 'empty'}
-                        />
-                      ))}
-                    </div>
-                  </td>
+                  <td>{renderRatingStars(book.rating)}</td>
                   <td className="actions-cell">
                     <button onClick={() => handleFavorite(book.id)} className="icon-button" title="Favoritar">
                       {book.favorite ? <FaHeart /> : <FaRegHeart />}
@@ -391,11 +397,11 @@ export default function Collection() {
                     <button onClick={() => handleEditClick(book)} className="icon-button" title="Editar">
                       <FaEdit />
                     </button>
-                    <button 
+                    <button
                       onClick={() => {
                         setSelectedBookId(book.id);
                         setShowDeleteModal(true);
-                      }} 
+                      }}
                       className="icon-button"
                       title="Remover"
                     >

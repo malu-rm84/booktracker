@@ -166,6 +166,21 @@ tbody tr:last-child td {
   color: var(--borda);
 }
 
+.rating-star.half-filled {
+  color: #ffd700;
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+}
+
+.rating-star.half-filled:before {
+  content: '\f005';
+  position: absolute;
+  left: 0;
+  width: 50%;
+  overflow: hidden;
+}
+
 .actions-cell {
   white-space: nowrap;
   text-align: center;
@@ -349,15 +364,31 @@ tbody tr:last-child td {
   margin: 0.5rem 0;
 }
 
+.rating-container {
+  display: flex;
+  gap: 2px;
+}
+
 .rating-star {
-  cursor: pointer;
-  font-size: 1.8rem;
-  color: var(--borda);
-  transition: color 0.2s;
+  color: #ddd;
+  font-size: 1rem;
 }
 
 .rating-star.filled {
   color: #ffd700;
+}
+
+.rating-star.half-filled {
+  color: #ffd700;
+  position: relative;
+}
+
+.rating-star.half-filled:before {
+  content: '\f089';
+  position: absolute;
+  left: 0;
+  width: 50%;
+  overflow: hidden;
 }
 
 .book-info-header {

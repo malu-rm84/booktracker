@@ -232,6 +232,22 @@ input[type="date"]:focus {
   color: #e0e0e0;
 }
 
+.rating-star.half-filled {
+  color: #ffd700;
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+}
+
+.rating-star.half-filled:before {
+  content: '\f005';
+  position: absolute;
+  left: 0;
+  width: 50%;
+  overflow: hidden;
+}
+
+
 .submit-button {
   width: 100%;
   padding: 1rem;

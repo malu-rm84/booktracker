@@ -1,46 +1,317 @@
+/* landing.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary-color: #4361ee;
+  --secondary-color: #3f37c9;
+  --accent-color: #4cc9f0;
+  --text-color: #333;
+  --light-text: #666;
+  --background-color: #f9f9f9;
+  --card-background: #ffffff;
+  --card-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  --gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  line-height: 1.6;
+  color: var(--text-color);
+  background-color: var(--background-color);
+}
+
 .landing-container {
-    min-height: 100vh;
-    padding: 2rem;
-    background: linear-gradient(135deg, #6c5ce7 0%, #4b3b8a 100%);
-    color: white;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Navigation */
+.landing-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 10%;
+  background-color: rgba(255, 255, 255, 0.95);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.book-icon {
+  font-size: 2rem;
+}
+
+.nav-links a {
+  color: var(--text-color);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 30px;
+  transition: all 0.3s;
+}
+
+.login-link {
+  background-color: var(--primary-color);
+  color: white !important;
+}
+
+.login-link:hover {
+  background-color: var(--secondary-color);
+  transform: translateY(-2px);
+}
+
+/* Header */
+.landing-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5rem 10%;
+  background: var(--gradient);
+  position: relative;
+  overflow: hidden;
+  color: white;
+}
+
+.header-content {
+  max-width: 500px;
+  z-index: 2;
+}
+
+.landing-header h1 {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.tagline {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}
+
+.header-image {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 600px;
+  z-index: 2;
+}
+
+.book-stack-image {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect x='50' y='50' width='300' height='200' rx='10' fill='%23ffffff' opacity='0.2'/%3E%3Crect x='70' y='70' width='260' height='160' rx='5' fill='%23ffffff' opacity='0.3'/%3E%3Crect x='90' y='90' width='220' height='120' rx='3' fill='%23ffffff' opacity='0.4'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  width: 100%;
+  height: 300px;
+}
+
+.cta-button {
+  background: white;
+  color: var(--primary-color);
+  padding: 1rem 2.5rem;
+  border-radius: 30px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s;
+  display: inline-block;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.cta-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+}
+
+/* Features */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2.5rem;
+  padding: 5rem 10%;
+  background-color: white;
+}
+
+.feature-card {
+  background: var(--card-background);
+  padding: 2.5rem;
+  border-radius: 15px;
+  transition: all 0.3s;
+  box-shadow: var(--card-shadow);
+  text-align: center;
+}
+
+.feature-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+
+.feature-icon {
+  font-size: 2.5rem;
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+}
+
+.feature-card h2 {
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+.feature-card p {
+  color: var(--light-text);
+}
+
+/* Testimonials */
+.testimonials {
+  padding: 5rem 10%;
+  background-color: #f5f9ff;
+  text-align: center;
+}
+
+.testimonials h2 {
+  margin-bottom: 3rem;
+  font-size: 2.2rem;
+  color: var(--text-color);
+}
+
+.testimonial-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.testimonial-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: var(--card-shadow);
+  text-align: left;
+  position: relative;
+}
+
+.testimonial-card::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  font-size: 5rem;
+  color: var(--primary-color);
+  opacity: 0.2;
+  line-height: 1;
+}
+
+.testimonial-card p {
+  font-style: italic;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.testimonial-author {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* Footer */
+.landing-footer {
+  background-color: var(--gradient);
+  color: white;
+  padding: 5rem 10% 2rem;
+  text-align: center;
+}
+
+.cta-section {
+  margin-bottom: 3rem;
+}
+
+.cta-section h2 {
+  margin-bottom: 1.5rem;
+  font-size: 2.2rem;
+}
+
+.footer-info {
+  opacity: 0.8;
+  font-size: 0.9rem;
+  margin-top: 3rem;
+}
+
+/* Media Queries */
+@media (max-width: 992px) {
+  .landing-header {
+    flex-direction: column;
     text-align: center;
+    padding: 3rem 10%;
+  }
+  
+  .header-content {
+    margin-bottom: 3rem;
+    max-width: 100%;
+  }
+  
+  .header-image {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .landing-nav {
+    padding: 1rem 5%;
   }
   
   .landing-header {
-    margin-bottom: 4rem;
+    padding: 2rem 5%;
+  }
+  
+  .features, .testimonials {
+    padding: 3rem 5%;
+  }
+  
+  .landing-footer {
+    padding: 3rem 5% 1.5rem;
   }
   
   .landing-header h1 {
-    font-size: 3.5rem;
-    margin-bottom: 1rem;
+    font-size: 2.5rem;
   }
   
-  .features {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
-    margin: 4rem 0;
-  }
-  
-  .feature-card {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 2rem;
-    border-radius: 15px;
-    backdrop-filter: blur(10px);
+  .tagline {
+    font-size: 1rem;
   }
   
   .cta-button {
-    background: white;
-    color: #6c5ce7;
-    padding: 1rem 2.5rem;
-    border-radius: 30px;
-    font-size: 1.2rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.3s;
+    padding: 0.8rem 1.8rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo {
+    font-size: 1.5rem;
   }
   
-  .cta-button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  .landing-header h1 {
+    font-size: 2rem;
   }
+  
+  .testimonial-grid {
+    grid-template-columns: 1fr;
+  }
+}

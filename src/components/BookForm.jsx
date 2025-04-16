@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useDebounce } from 'use-debounce';
-import { FaSearch, FaBook, FaStar, FaSpinner, FaPlus } from 'react-icons/fa';
+import { FaSearch, FaBook, FaStar, FaSpinner, FaPlus, FaStarHalfAlt } from 'react-icons/fa';
 import { auth } from '../firebase';
 import { fetchBookData } from '../services/bookApi';
 import '../styles/bookform.css';
@@ -17,6 +17,7 @@ export default function BookForm({ onSubmit, loading }) {
     cover: '',
     status: 'Não iniciado',
     rating: 0,
+    averageRating: 0,
     startDate: '',
     endDate: ''
   });
@@ -37,7 +38,8 @@ export default function BookForm({ onSubmit, loading }) {
             genre: data.genres || prev.genre,
             synopsis: data.description || 'Sem descrição disponível',
             pages: data.pageCount || 0,
-            cover: data.images?.[0] || prev.cover
+            cover: data.images?.[0] || prev.cover,
+            averageRating: data.averageRating || 0
           }));
           setSearchResults(data.images || []);
         }
@@ -60,6 +62,33 @@ export default function BookForm({ onSubmit, loading }) {
       ...formData,
       userId: auth.currentUser?.uid
     });
+  };
+
+  const renderRatingStars = (value) => {
+    // Sanitiza o valor para garantir que está entre 0 e 5
+    const sanitizedValue = Math.min(Math.max(Number(value) || 0, 0), 5);
+    const fullStars = Math.floor(sanitizedValue);
+    const hasHalfStar = sanitizedValue % 1 >= 0.5;
+  
+    // Garante que os cálculos não resultem em números negativos
+    const emptyStars = Math.max(5 - fullStars - (hasHalfStar ? 1 : 0), 0);
+  
+    return (
+      <div className="rating-container">
+        {/* Estrelas cheias */}
+        {[...Array(fullStars)].map((_, i) => (
+          <FaStar key={`full-${i}`} className="rating-star filled" />
+        ))}
+  
+        {/* Meia estrela */}
+        {hasHalfStar && <FaStarHalfAlt className="rating-star half-filled" />}
+  
+        {/* Estrelas vazias */}
+        {[...Array(emptyStars)].map((_, i) => (
+          <FaStar key={`empty-${i}`} className="rating-star empty" />
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -102,7 +131,7 @@ export default function BookForm({ onSubmit, loading }) {
                       src={cover}
                       alt={`Opção de capa ${index + 1}`}
                       className={`cover-option ${formData.cover === cover ? 'selected' : ''}`}
-                      onClick={() => setFormData({...formData, cover})}
+                      onClick={() => setFormData({ ...formData, cover })}
                     />
                   ))}
                 </div>
@@ -117,7 +146,7 @@ export default function BookForm({ onSubmit, loading }) {
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="text-input"
                   required
                 />
@@ -130,7 +159,7 @@ export default function BookForm({ onSubmit, loading }) {
                 <input
                   type="text"
                   value={formData.author}
-                  onChange={(e) => setFormData({...formData, author: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, author: e.target.value })}
                   className="text-input"
                 />
               </label>
@@ -143,7 +172,7 @@ export default function BookForm({ onSubmit, loading }) {
                   <input
                     type="text"
                     value={formData.genre}
-                    onChange={(e) => setFormData({...formData, genre: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
                     className="text-input"
                   />
                 </label>
@@ -155,11 +184,13 @@ export default function BookForm({ onSubmit, loading }) {
                   <input
                     type="number"
                     value={formData.pages || ''}
-                    onChange={(e) => setFormData({...formData, pages: parseInt(e.target.value) || 0})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, pages: parseInt(e.target.value) || 0 })
+                    }
                     className="number-input"
                   />
-                  {formData.pages === 0 && (
-                    <p style={{ color: 'orange' }}>⚠️ Número de páginas não disponível.</p>
+                  {formData.pages === null && (
+                    <p style={{ color: 'orange' }}>Número de páginas não disponível.</p>
                   )}
                 </label>
               </div>
@@ -170,10 +201,17 @@ export default function BookForm({ onSubmit, loading }) {
                 Sinopse
                 <textarea
                   value={formData.synopsis}
-                  onChange={(e) => setFormData({...formData, synopsis: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, synopsis: e.target.value })}
                   className="synopsis-textarea"
                   rows="5"
                 />
+              </label>
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">
+                Nota Média
+                {renderRatingStars(formData.averageRating)}
               </label>
             </div>
           </div>
@@ -186,7 +224,7 @@ export default function BookForm({ onSubmit, loading }) {
                 Status
                 <select
                   value={formData.status}
-                  onChange={(e) => setFormData({...formData, status: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                   className="status-select"
                 >
                   <option value="Não iniciado">Não Iniciado</option>
@@ -203,7 +241,7 @@ export default function BookForm({ onSubmit, loading }) {
                 <input
                   type="date"
                   value={formData.startDate}
-                  onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                   className="text-input"
                 />
               </label>
@@ -216,27 +254,28 @@ export default function BookForm({ onSubmit, loading }) {
                   <input
                     type="date"
                     value={formData.endDate}
-                    onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                     className="text-input"
                   />
                 </label>
               </div>
             )}
 
-            <div className="input-group">
-              <label className="input-label">
-                Avaliação
-                <div className="rating-container">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <FaStar
-                      key={star}
-                      className={`rating-star ${star <= formData.rating ? 'filled' : 'empty'}`}
-                      onClick={() => setFormData({...formData, rating: star})}
-                    />
-                  ))}
-                </div>
-              </label>
-            </div>
+              <div className="input-group">
+                <label className="input-label">
+                  Sua Avaliação
+                  <input
+                    type="number"
+                    min="0"
+                    max="5"
+                    step="0.5"
+                    value={formData.rating}
+                    onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) })}
+                    className="number-input"
+                  />
+                  {renderRatingStars(formData.rating)}
+                </label>
+              </div>
           </div>
 
           <button
