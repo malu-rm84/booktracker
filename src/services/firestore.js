@@ -23,14 +23,16 @@ export const addBook = async (userId, bookData) => {
 
 // Cria a estrutura inicial do usuário se não existir
 export const initUserCollection = async (userId) => {
-    try {
-      const userRef = doc(db, 'users', userId);
-      await setDoc(userRef, { 
-        initialized: true,
-        createdAt: new Date() 
-      }, { merge: true });
-    } catch (error) {
-      console.error('Erro ao inicializar usuário:', error);
-      throw error; // Adicione isso para propagar o erro
-    }
-  };
+  try {
+    const userRef = doc(db, 'users', userId);
+    await setDoc(userRef, { 
+      initialized: true,
+      createdAt: new Date()
+    }, { merge: true });
+    
+    console.log('Coleção do usuário inicializada com sucesso');
+  } catch (error) {
+    console.error('Erro ao inicializar usuário:', error);
+    throw error;
+  }
+};

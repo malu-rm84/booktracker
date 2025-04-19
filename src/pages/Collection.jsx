@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { auth } from '../firebase';
-import { collection, doc, query, getDocs, deleteDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, deleteDoc, updateDoc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { FaHeart, FaRegHeart, FaStar, FaTrash, FaSort, FaFilter, FaBook, FaEdit, FaStarHalfAlt } from 'react-icons/fa';
 import '../styles/collection.css';
@@ -107,12 +107,30 @@ export default function Collection() {
     }
   };
 
+  // Collection.jsx
   const handleDelete = async () => {
     try {
       const user = auth.currentUser;
       if (!user) return;
 
       const bookRef = doc(db, 'users', user.uid, 'books', selectedBookId);
+      
+      // Remover de todas as pastas primeiro
+      const foldersRef = collection(db, 'users', user.uid, 'folders');
+      const foldersSnapshot = await getDocs(foldersRef);
+      
+      // Atualizar cada pasta que contém o livro
+      const updatePromises = foldersSnapshot.docs.map(async (folderDoc) => {
+        const folderData = folderDoc.data();
+        if (folderData.books?.includes(selectedBookId)) {
+          const updatedBooks = folderData.books.filter(id => id !== selectedBookId);
+          await updateDoc(folderDoc.ref, { books: updatedBooks });
+        }
+      });
+
+      await Promise.all(updatePromises);
+      
+      // Excluir o livro
       await deleteDoc(bookRef);
       setBooks(books.filter(book => book.id !== selectedBookId));
       setShowDeleteModal(false);
@@ -292,15 +310,33 @@ export default function Collection() {
             </div>
             <div className="form-group">
               <label>Título</label>
-              <input type="text" value={formData.title} className="form-input" />
+              <input 
+                type="text" 
+                name="title"
+                value={formData.title} 
+                onChange={handleFormChange}
+                className="form-input" 
+              />
             </div>
             <div className="form-group">
               <label>Autor</label>
-              <input type="text" value={formData.author} className="form-input" />
+              <input 
+                type="text" 
+                name="author"
+                value={formData.author} 
+                onChange={handleFormChange}
+                className="form-input" 
+              />
             </div>
             <div className="form-group">
               <label>Gênero</label>
-              <input type="text" value={formData.genre} className="form-input" />
+              <input 
+                type="text" 
+                name="genre"
+                value={formData.genre} 
+                onChange={handleFormChange}
+                className="form-input" 
+              />
             </div>
             <div className="form-group full-width">
               <label>Sinopse</label>

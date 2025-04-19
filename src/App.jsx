@@ -28,7 +28,7 @@ export default function App() {
           </Route>
         </Route>
 
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </ErrorBoundary>
   );
@@ -38,20 +38,26 @@ function ProtectedRoute() {
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      console.log('Status de autenticação:', user ? 'Autenticado' : 'Não autenticado');
       setAuthChecked(true);
     });
 
     return () => unsubscribe();
   }, []);
 
-  if (!authChecked) return <div className="loading">Verificando autenticação...</div>;
+  if (!authChecked) {
+    return <div className="loading">Carregando...</div>;
+  }
 
-  return auth.currentUser ? (
+  if (!auth.currentUser) {
+    console.log('Redirecionando para login');
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
     <ErrorBoundary>
       <Outlet />
     </ErrorBoundary>
-  ) : (
-    <Navigate to="/login" replace />
   );
 }

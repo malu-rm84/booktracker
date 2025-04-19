@@ -32,15 +32,6 @@ export default function Login() {
           <span>Entrar com Google</span>
         </button>
         
-        <div className="separator">
-          <span>ou</span>
-        </div>
-        
-        <div className="demo-account">
-          <p>Quer apenas conhecer a plataforma?</p>
-          <button className="demo-btn">Acessar conta demonstrativa</button>
-        </div>
-        
         <Link to="/" className="back-link">
           <FaArrowLeft /> Voltar para a página inicial
         </Link>
