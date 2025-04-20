@@ -13,7 +13,6 @@
   text-align: center;
 }
 
-/* Controles de filtragem e ordenação */
 .controls {
   display: flex;
   justify-content: space-between;
@@ -63,7 +62,6 @@
   transform: translateY(-2px);
 }
 
-/* Tabela de livros */
 .books-table {
   overflow-x: auto;
   margin-bottom: 2rem;
@@ -76,13 +74,13 @@ table {
   border-collapse: collapse;
   background: white;
   border-radius: 8px;
-  overflow: hidden;
 }
 
 th, td {
   padding: 1rem 0.8rem;
   text-align: left;
-  border-bottom: 1px solid var(--borda);
+  border-bottom: none;
+  vertical-align: middle;
 }
 
 th {
@@ -94,10 +92,6 @@ th {
 
 tbody tr:hover {
   background-color: #f9f7ff;
-}
-
-tbody tr:last-child td {
-  border-bottom: none;
 }
 
 .book-cover {
@@ -153,24 +147,27 @@ tbody tr:last-child td {
   color: #943126;
 }
 
-.rating-stars {
+.rating-container {
   display: flex;
-  gap: 0.3rem;
+  gap: 0.5rem;
 }
 
-.rating-stars .filled {
+.rating-star {
+  font-size: 1.5rem;
+}
+
+.rating-star.filled {
   color: #ffd700;
 }
 
-.rating-stars .empty {
-  color: var(--borda);
+.rating-star.empty {
+  color: #e0e0e0;
 }
 
 .rating-star.half-filled {
   color: #ffd700;
   position: relative;
   overflow: hidden;
-  display: inline-block;
 }
 
 .rating-star.half-filled:before {
@@ -209,7 +206,6 @@ tbody tr:last-child td {
   font-style: italic;
 }
 
-/* Telas de carregamento e erro */
 .loading-screen {
   display: flex;
   justify-content: center;
@@ -228,7 +224,6 @@ tbody tr:last-child td {
   margin: 1.5rem;
 }
 
-/* Modal de exclusão */
 .delete-modal {
   position: fixed;
   top: 0;
@@ -291,7 +286,6 @@ tbody tr:last-child td {
   transform: translateY(-2px);
 }
 
-/* Modal de edição */
 .edit-modal {
   position: fixed;
   top: 0;
@@ -327,7 +321,7 @@ tbody tr:last-child td {
 }
 
 .form-group {
-  margin-bottom: a.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .form-group label {
@@ -358,40 +352,11 @@ tbody tr:last-child td {
   resize: vertical;
 }
 
-.rating-edit {
-  display: flex;
-  gap: 0.5rem;
-  margin: 0.5rem 0;
-}
-
 .rating-container {
   display: flex;
   gap: 2px;
 }
 
-.rating-star {
-  color: #ddd;
-  font-size: 1rem;
-}
-
-.rating-star.filled {
-  color: #ffd700;
-}
-
-.rating-star.half-filled {
-  color: #ffd700;
-  position: relative;
-}
-
-.rating-star.half-filled:before {
-  content: '\f089';
-  position: absolute;
-  left: 0;
-  width: 50%;
-  overflow: hidden;
-}
-
-/* collection.css */
 .change-cover-button {
   margin-top: 1rem;
   padding: 0.5rem 1rem;
@@ -495,10 +460,24 @@ tbody tr:last-child td {
   color: #777;
 }
 
-.read-only-field {
-  background: #f9f9f9;
-  border: 1px solid #ddd;
-  cursor: not-allowed;
+.book-rating {
+  font-size: 0.95rem;
+  color: #777;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.rating-value {
+  color: #6c5ce7;
+  font-weight: 500;
+  margin-left: 0.3rem;
+}
+
+.rating-container {
+  display: flex;
+  gap: 0.2rem;
 }
 
 .form-grid {
@@ -512,7 +491,6 @@ tbody tr:last-child td {
   grid-column: 1 / -1;
 }
 
-/* Exibição da sinopse */
 .synopsis-display {
   background: #f9f9f9;
   padding: 0.4rem;
@@ -526,52 +504,68 @@ tbody tr:last-child td {
   margin-bottom: 1.5rem;
 }
 
-/* Adicione estas regras ao seu arquivo existente */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
 
-.form-group input[type="date"] {
-  padding: 0.6rem;
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.progress-container {
+  width: 100%;
+  height: 14px;
+  background: #e6e4ff;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  margin-top: 0.5rem;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #6c5ce7;
+  transition: width 0.3s ease;
+  border-radius: 8px 0 0 8px;
+}
+
+.progress-container .progress-text {
+  display: none;
+}
+
+.progress-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.progress-input {
+  padding-right: 45px;
+  width: 100%;
   border: 2px solid #e6e4ff;
   border-radius: 8px;
-  width: 100%;
-  font-family: inherit;
+  font-size: 0.95rem;
   background: white;
+  transition: all 0.3s ease;
+  min-height: 40px;
+  font-family: inherit;
 }
 
-.form-group input[type="date"]:disabled {
-  background: #f5f5f5;
-  cursor: not-allowed;
-  opacity: 0.7;
+.pages-total {
+  position: absolute;
+  right: 15px;
+  color: #6c5ce7;
+  font-weight: 500;
 }
 
-.status-rating-container {
-  gap: 1.5rem;
-}
-
-.form-grid {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.2rem;
-}
-
-@media (max-width: 768px) {
-  .form-group input[type="date"] {
-    padding: 0.5rem;
-  }
-}
-
-/* Media queries para responsividade */
-@media (max-width: 992px) {
-  .filter-group, .sort-group {
-    flex: 1;
-    justify-content: center;
-  }
-  
-  .filter-select, .sort-select {
-    flex: 1;
-  }
-  
-  .form-grid {
-    gap: 1rem;
-  }
+.progress-info {
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+  color: #6c5ce7;
 }
 
 @media (max-width: 768px) {
@@ -595,12 +589,11 @@ tbody tr:last-child td {
     justify-content: space-between;
   }
   
-  /* Adaptação da tabela para telas médias */
   table {
     font-size: 0.9rem;
   }
   
-  th:nth-child(3), /* Autor */
+  th:nth-child(3),
   td:nth-child(3) {
     display: none;
   }
@@ -638,12 +631,11 @@ tbody tr:last-child td {
     display: none;
   }
   
-  /* Adaptação mais radical da tabela para telas pequenas */
   th, td {
     padding: 0.7rem 0.5rem;
   }
   
-  th:nth-child(2), /* Título */
+  th:nth-child(2),
   td:nth-child(2) {
     max-width: 120px;
     white-space: nowrap;
@@ -651,7 +643,7 @@ tbody tr:last-child td {
     text-overflow: ellipsis;
   }
   
-  th:nth-child(4), /* Status */
+  th:nth-child(4),
   td:nth-child(4) {
     display: none;
   }
@@ -669,7 +661,6 @@ tbody tr:last-child td {
     width: 100%;
   }
   
-  /* Versão card para telas muito pequenas */
   @media (max-width: 480px) {
     .books-table table {
       display: block;
@@ -698,14 +689,6 @@ tbody tr:last-child td {
       border-bottom: none;
     }
     
-    /* Forçar a exibição de todos os dados em formato de card */
-    .books-table td:nth-child(2),
-    .books-table td:nth-child(3),
-    .books-table td:nth-child(4) {
-      display: flex;
-      max-width: none;
-    }
-    
     .books-table td:before {
       content: attr(data-label);
       font-weight: 600;
@@ -718,52 +701,12 @@ tbody tr:last-child td {
       padding-bottom: 1rem;
     }
     
-    .books-table td:first-child:before {
-      display: none;
-    }
-    
     .books-table td:last-child {
       justify-content: center;
       padding-top: 1rem;
       border-top: 1px solid var(--borda);
     }
-    
-    .books-table td:last-child:before {
-      display: none;
-    }
-    
-    .status-badge {
-      display: inline-flex;
-    }
   }
-}
-
-/* Adicione no final do arquivo */
-.cover-search-section {
-  margin: 1.5rem 0;
-  padding: 1rem;
-  background: #f8f7ff;
-  border-radius: 8px;
-}
-
-.loading-spinner {
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #6c5ce7;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  animation: spin 1s linear infinite;
-  margin: 1rem auto;
-}
-
-.cover-options-grid {
-  margin-top: 1rem;
-}
-
-.cover-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 1rem;
 }
 
 @keyframes spin {

@@ -28,9 +28,14 @@ export default function Collection() {
     genre: '',
     status: '',
     rating: 0,
+    averageRating: 0,
     notes: '',
     cover: '',
-    synopsis: ''
+    synopsis: '',
+    pages: 0,
+    progress: 0,
+    startDate: '',
+    endDate: ''
   });
 
   useEffect(() => {
@@ -71,9 +76,13 @@ export default function Collection() {
       setIsSearchingCovers(true);
       const data = await fetchBookData(formData.title);
       
-      // Garantir que as capas sejam URLs válidas
-      const validCovers = data?.images?.filter(url => 
-        url.startsWith('http') && (url.includes('googleapis') || url.includes('openlibrary.org'))
+      const validCovers = data?.images?.map(url => 
+        url.replace('http://', 'https://') // Forçar HTTPS
+           .replace('http:', 'https:') // Extra replace para garantir
+      ).filter(url => 
+        url.startsWith('https://') && 
+        (url.includes('googleapis') || 
+        url.includes('openlibrary.org'))
       ) || [];
       
       setCoverSearchResults(validCovers);
@@ -107,19 +116,15 @@ export default function Collection() {
     }
   };
 
-  // Collection.jsx
   const handleDelete = async () => {
     try {
       const user = auth.currentUser;
       if (!user) return;
 
       const bookRef = doc(db, 'users', user.uid, 'books', selectedBookId);
-      
-      // Remover de todas as pastas primeiro
       const foldersRef = collection(db, 'users', user.uid, 'folders');
       const foldersSnapshot = await getDocs(foldersRef);
       
-      // Atualizar cada pasta que contém o livro
       const updatePromises = foldersSnapshot.docs.map(async (folderDoc) => {
         const folderData = folderDoc.data();
         if (folderData.books?.includes(selectedBookId)) {
@@ -129,8 +134,6 @@ export default function Collection() {
       });
 
       await Promise.all(updatePromises);
-      
-      // Excluir o livro
       await deleteDoc(bookRef);
       setBooks(books.filter(book => book.id !== selectedBookId));
       setShowDeleteModal(false);
@@ -148,9 +151,14 @@ export default function Collection() {
       genre: book.genre,
       status: book.status,
       rating: book.rating || 0,
+      averageRating: book.averageRating || 0,
       notes: book.notes || '',
       cover: book.cover || '',
-      synopsis: book.synopsis || ''
+      synopsis: book.synopsis || '',
+      pages: book.pages || 0,
+      progress: book.progress || 0,
+      startDate: book.startDate || '',
+      endDate: book.endDate || ''  
     });
     setShowEditModal(true);
   };
@@ -163,7 +171,6 @@ export default function Collection() {
     setFormData({ ...formData, rating: newRating });
   };
 
-  // Collection.jsx
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -173,7 +180,9 @@ export default function Collection() {
       const bookRef = doc(db, 'users', user.uid, 'books', selectedBook.id);
       await updateDoc(bookRef, {
         ...formData,
-        cover: formData.cover // Adiciona a nova capa
+        cover: formData.cover,
+        pages: Number(formData.pages),
+        progress: Number(formData.progress)
       });
 
       setBooks(books.map(book =>
@@ -253,7 +262,16 @@ export default function Collection() {
           <div className="book-info-text">
             <h4 className="book-title">{formData.title}</h4>
             <p className="book-author">por {formData.author}</p>
-            <p className="book-genre">Gênero: {formData.genre || 'Não informado'}</p>
+            <div className="book-meta-info">
+              <p className="book-genre">Gênero: {formData.genre || 'Não informado'}</p>
+              <div className="book-rating">
+                <span>Nota Média:</span> 
+                {renderRatingStars(formData.averageRating)}
+                <span className="rating-value">
+                  ({parseFloat(formData.averageRating).toFixed(1)})
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -338,6 +356,18 @@ export default function Collection() {
                 className="form-input" 
               />
             </div>
+            <div className="form-group">
+              <label>Total de Páginas</label>
+              <input
+                type="number"
+                name="pages"
+                value={formData.pages}
+                onChange={handleFormChange}
+                className="form-input"
+                min="0"
+              />
+            </div>
+
             <div className="form-group full-width">
               <label>Sinopse</label>
               <div className="synopsis-display">
@@ -347,10 +377,18 @@ export default function Collection() {
             <div className="form-group">
               <label>Status</label>
               <select
-                name="status"
                 value={formData.status}
-                onChange={handleFormChange}
-                className="form-input"
+                onChange={(e) => {
+                  const newStatus = e.target.value;
+                  const updates = { status: newStatus };
+                  
+                  if (newStatus === 'Concluído') {
+                    updates.progress = formData.pages;
+                  }
+                  
+                  setFormData({ ...formData, ...updates });
+                }}
+                className="status-select"
               >
                 <option value="Não iniciado">Não Iniciado</option>
                 <option value="Em andamento">Em Andamento</option>
@@ -367,6 +405,7 @@ export default function Collection() {
                 value={formData.startDate}
                 onChange={handleFormChange}
                 className="form-input"
+                placeholder="dd/mm/aaaa"
               />
             </div>
 
@@ -379,7 +418,41 @@ export default function Collection() {
                   value={formData.endDate}
                   onChange={handleFormChange}
                   className="form-input"
+                  placeholder="dd/mm/aaaa"
                 />
+              </div>
+            )}
+
+            {(formData.status === 'Em andamento' || formData.status === 'Abandonado' || formData.status === 'Concluído') && (
+              <div className="form-group">
+                <label>Página Atual</label>
+                <div className="progress-input-container">
+                <input
+                  type="number"
+                  value={formData.pages || ''}
+                  onChange={(e) => {
+                    const newPages = parseInt(e.target.value) || 0;
+                    const updates = { pages: newPages };
+                    
+                    if (formData.status === 'Concluído') {
+                      updates.progress = newPages;
+                    }
+                    
+                    setFormData({ ...formData, ...updates });
+                  }}
+                  className="number-input"
+                />
+                  <span className="pages-total">/ {formData.pages}</span>
+                </div>
+                <div className="progress-container">
+                  <div 
+                    className="progress-bar" 
+                    style={{ width: `${Math.round((formData.progress / formData.pages) * 100) || 0}%` }}
+                  ></div>
+                </div>
+                <div className="progress-info">
+                  Progresso: {Math.round((formData.progress / formData.pages) * 100 || 0)}%
+                </div>
               </div>
             )}
 
@@ -479,6 +552,7 @@ export default function Collection() {
               <th>Autor</th>
               <th>Status</th>
               <th>Avaliação</th>
+              <th>Progresso</th>
               <th>Ações</th>
             </tr>
           </thead>
@@ -503,6 +577,21 @@ export default function Collection() {
                     </span>
                   </td>
                   <td>{renderRatingStars(book.rating)}</td>
+                  <td>
+                    {(book.status === 'Em andamento' || book.status === 'Abandonado' || book.status === 'Concluído') && (
+                      <>
+                        <div className="progress-container">
+                          <div 
+                            className="progress-bar" 
+                            style={{ width: `${Math.round((book.progress / book.pages) * 100) || 0}%` }}
+                          ></div>
+                        </div>
+                        <div className="progress-info">
+                          {Math.round((book.progress / book.pages) * 100) || 0}%
+                        </div>
+                      </>
+                    )}
+                  </td>
                   <td className="actions-cell">
                     <button onClick={() => handleFavorite(book.id)} className="icon-button" title="Favoritar">
                       {book.favorite ? <FaHeart /> : <FaRegHeart />}
@@ -525,7 +614,7 @@ export default function Collection() {
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="no-books-message">
+                <td colSpan="7" className="no-books-message">
                   Nenhum livro encontrado com os filtros selecionados.
                 </td>
               </tr>

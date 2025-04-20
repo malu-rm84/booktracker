@@ -334,9 +334,9 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <div className="goals-grid">
-          {goals.map(goal => (
-            <div key={goal.id} className="goal-card">
+        {goals.map(goal => (
+          <div key={goal.id} className="goal-container">
+            <div className="goal-card">
               <div className="goal-header">
                 <FaBullseye className="goal-icon" />
                 <h3>{goal.description || `Meta ${goal.type}`}</h3>
@@ -360,9 +360,9 @@ export default function Dashboard() {
                 </div>
               </div>
               
-              <div className="progress-bar">
+              <div className="progress-container">
                 <div 
-                  className="progress-fill"
+                  className="progress-bar"
                   style={{ width: `${calculateGoalProgress(goal)}%` }}
                 >
                   {calculateGoalProgress(goal)}%
@@ -390,8 +390,8 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
 
       {showGoalModal && (

@@ -148,6 +148,12 @@
   padding: 1.2rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.goal-container {
+  margin-bottom: 1.5rem;
 }
 
 .goal-header {
@@ -157,24 +163,28 @@
   margin-bottom: 1rem;
 }
 
-.progress-bar {
-  background: #eee;
-  height: 25px;
-  border-radius: 20px;
+.progress-container {
+  width: 100%;
+  
+  background: #e6e4ff;
+  border-radius: 8px;
   overflow: hidden;
   position: relative;
+  margin-top: 0.5rem;
 }
 
-.progress-fill {
-  background: var(--roxo-principal);
+.progress-bar {
   height: 100%;
+  background: var(--roxo-principal);
   transition: width 0.3s ease;
+  border-radius: 8px 0 0 8px;
+  min-width: 14px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding-right: 8px;
+  padding-right: 4px;
   color: white;
-  font-size: 0.9rem;
+  font-size: 0.7rem;
 }
 
 .goal-details {

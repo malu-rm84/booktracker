@@ -19,12 +19,12 @@ export default function BookForm({ onSubmit, loading }) {
     rating: 0,
     averageRating: 0,
     startDate: '',
-    endDate: ''
+    endDate: '',
+    progress: 0
   });
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
 
-  // BookForm.jsx
   useEffect(() => {
     const fetchBook = async () => {
       if (!debouncedSearchTerm) return;
@@ -32,6 +32,12 @@ export default function BookForm({ onSubmit, loading }) {
       try {
         const data = await fetchBookData(debouncedSearchTerm);
         if (data) {
+          // Converter URLs para HTTPS
+          const secureImages = data.images?.map(url => 
+            url.replace('http://', 'https://')
+               .replace('http:', 'https:')
+          ) || [];
+          
           setFormData(prev => ({
             ...prev,
             title: data.title || prev.title,
@@ -39,17 +45,17 @@ export default function BookForm({ onSubmit, loading }) {
             genre: data.genres || prev.genre,
             synopsis: data.description || 'Sem descrição disponível',
             pages: data.pageCount || 0,
-            cover: data.images?.[0] || prev.cover,
+            cover: secureImages[0] || prev.cover,
             averageRating: data.averageRating || 0
           }));
-          setSearchResults(data.images || []);
+          setSearchResults(secureImages);
         }
       } catch (error) {
         console.error('Erro na busca:', error);
       }
       setIsSearching(false);
     };
-
+  
     fetchBook();
   }, [debouncedSearchTerm]);
 
@@ -61,30 +67,24 @@ export default function BookForm({ onSubmit, loading }) {
     }
     onSubmit({
       ...formData,
-      userId: auth.currentUser?.uid
+      userId: auth.currentUser?.uid,
+      pages: Number(formData.pages),
+      progress: Number(formData.progress)
     });
   };
 
   const renderRatingStars = (value) => {
-    // Sanitiza o valor para garantir que está entre 0 e 5
     const sanitizedValue = Math.min(Math.max(Number(value) || 0, 0), 5);
     const fullStars = Math.floor(sanitizedValue);
     const hasHalfStar = sanitizedValue % 1 >= 0.5;
-  
-    // Garante que os cálculos não resultem em números negativos
     const emptyStars = Math.max(5 - fullStars - (hasHalfStar ? 1 : 0), 0);
-  
+
     return (
       <div className="rating-container">
-        {/* Estrelas cheias */}
         {[...Array(fullStars)].map((_, i) => (
           <FaStar key={`full-${i}`} className="rating-star filled" />
         ))}
-  
-        {/* Meia estrela */}
         {hasHalfStar && <FaStarHalfAlt className="rating-star half-filled" />}
-  
-        {/* Estrelas vazias */}
         {[...Array(emptyStars)].map((_, i) => (
           <FaStar key={`empty-${i}`} className="rating-star empty" />
         ))}
@@ -121,7 +121,6 @@ export default function BookForm({ onSubmit, loading }) {
                 <FaBook className="placeholder-icon" />
               </div>
             )}
-
             {searchResults.length > 0 && (
               <div className="cover-options-grid">
                 <h4>Selecione uma capa:</h4>
@@ -142,8 +141,7 @@ export default function BookForm({ onSubmit, loading }) {
 
           <div className="book-details">
             <div className="input-group">
-              <label className="input-label">
-                Título
+              <label className="input-label">Título
                 <input
                   type="text"
                   value={formData.title}
@@ -155,8 +153,7 @@ export default function BookForm({ onSubmit, loading }) {
             </div>
 
             <div className="input-group">
-              <label className="input-label">
-                Autor
+              <label className="input-label">Autor
                 <input
                   type="text"
                   value={formData.author}
@@ -168,8 +165,7 @@ export default function BookForm({ onSubmit, loading }) {
 
             <div className="form-row">
               <div className="input-group">
-                <label className="input-label">
-                  Gênero
+                <label className="input-label">Gênero
                   <input
                     type="text"
                     value={formData.genre}
@@ -178,28 +174,20 @@ export default function BookForm({ onSubmit, loading }) {
                   />
                 </label>
               </div>
-
               <div className="input-group">
-                <label className="input-label">
-                  Páginas
+                <label className="input-label">Páginas
                   <input
                     type="number"
                     value={formData.pages || ''}
-                    onChange={(e) =>
-                      setFormData({ ...formData, pages: parseInt(e.target.value) || 0 })
-                    }
+                    onChange={(e) => setFormData({ ...formData, pages: parseInt(e.target.value) || 0 })}
                     className="number-input"
                   />
-                  {formData.pages === null && (
-                    <p style={{ color: 'orange' }}>Número de páginas não disponível.</p>
-                  )}
                 </label>
               </div>
             </div>
 
             <div className="input-group">
-              <label className="input-label">
-                Sinopse
+              <label className="input-label">Sinopse
                 <textarea
                   value={formData.synopsis}
                   onChange={(e) => setFormData({ ...formData, synopsis: e.target.value })}
@@ -210,8 +198,7 @@ export default function BookForm({ onSubmit, loading }) {
             </div>
 
             <div className="input-group">
-              <label className="input-label">
-                Nota Média
+              <label className="input-label">Nota Média
                 {renderRatingStars(formData.averageRating)}
               </label>
             </div>
@@ -221,13 +208,21 @@ export default function BookForm({ onSubmit, loading }) {
         <div className="form-controls">
           <div className="status-rating-container">
             <div className="input-group">
-              <label className="input-label">
-                Status
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="status-select"
-                >
+              <label className="input-label">Status
+              <select
+                value={formData.status}
+                onChange={(e) => {
+                  const newStatus = e.target.value;
+                  const updates = { status: newStatus };
+                  
+                  if (newStatus === 'Concluído') {
+                    updates.progress = formData.pages;
+                  }
+                  
+                  setFormData({ ...formData, ...updates });
+                }}
+                className="status-select"
+              >
                   <option value="Não iniciado">Não Iniciado</option>
                   <option value="Em andamento">Em Andamento</option>
                   <option value="Concluído">Concluído</option>
@@ -236,9 +231,36 @@ export default function BookForm({ onSubmit, loading }) {
               </label>
             </div>
 
+            {(formData.status === 'Em andamento' || formData.status === 'Abandonado' || formData.status === 'Concluído') && (
+              <div className="input-group">
+                <label className="input-label">Página Atual
+                  <div className="progress-input-container">
+                    <input
+                      type="number"
+                      min="0"
+                      max={formData.pages}
+                      value={formData.progress}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        progress: Math.min(parseInt(e.target.value) || 0, formData.pages)
+                      })}
+                      className="progress-input"
+                      placeholder="Página atual"
+                    />
+                    <span className="pages-total">/ {formData.pages}</span>
+                  </div>
+                </label>
+                <div className="progress-container">
+                  <div className="progress-bar" style={{ width: `${(formData.progress / (formData.pages || 1)) * 100}%` }}></div>
+                </div>
+                <div className="progress-info">
+                  Progresso: {Math.round((formData.progress / (formData.pages || 1) * 100 || 0))}%
+                </div>
+              </div>
+            )}
+
             <div className="input-group">
-              <label className="input-label">
-                Data de Início
+              <label className="input-label">Data de Início
                 <input
                   type="date"
                   value={formData.startDate}
@@ -250,8 +272,7 @@ export default function BookForm({ onSubmit, loading }) {
 
             {formData.status === 'Concluído' && (
               <div className="input-group">
-                <label className="input-label">
-                  Data de Término
+                <label className="input-label">Data de Término
                   <input
                     type="date"
                     value={formData.endDate}
@@ -262,21 +283,20 @@ export default function BookForm({ onSubmit, loading }) {
               </div>
             )}
 
-              <div className="input-group">
-                <label className="input-label">
-                  Sua Avaliação
-                  <input
-                    type="number"
-                    min="0"
-                    max="5"
-                    step="0.5"
-                    value={formData.rating}
-                    onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) })}
-                    className="number-input"
-                  />
-                  {renderRatingStars(formData.rating)}
-                </label>
-              </div>
+            <div className="input-group">
+              <label className="input-label">Sua Avaliação
+                <input
+                  type="number"
+                  min="0"
+                  max="5"
+                  step="0.5"
+                  value={formData.rating}
+                  onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) })}
+                  className="number-input"
+                />
+                {renderRatingStars(formData.rating)}
+              </label>
+            </div>
           </div>
 
           <button

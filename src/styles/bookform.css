@@ -166,7 +166,7 @@ input[type="date"] {
   min-height: 150px;
   resize: vertical;
   line-height: 1.5;
-  padding: 0.1;
+  padding: 0.1rem;
 }
 
 .text-input:focus,
@@ -247,7 +247,6 @@ input[type="date"]:focus {
   overflow: hidden;
 }
 
-
 .submit-button {
   width: 100%;
   padding: 1rem;
@@ -286,6 +285,61 @@ input[type="date"]:focus {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+.cover-options-grid {
+  margin-top: 1rem;
+}
+
+.cover-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.cover-option {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 2px solid transparent;
+}
+
+.cover-option:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.cover-option.selected {
+  border-color: #6c5ce7;
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+}
+
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield; /* Adicionado */
+}
+
+.progress-input {
+  -moz-appearance: textfield;
+  appearance: textfield; /* Adicionado */
+}
+
+.progress-input::-webkit-outer-spin-button,
+.progress-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
 }
 
 @media (max-width: 768px) {
@@ -333,34 +387,13 @@ input[type="date"]:focus {
   }
 }
 
-/* Adicione no final do arquivo */
-.cover-options-grid {
-  margin-top: 1rem;
+.progress-bar {
+  background: #6c5ce7 !important;
 }
 
-.cover-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.cover-option {
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  border: 2px solid transparent;
-}
-
-.cover-option:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-.cover-option.selected {
-  border-color: #6c5ce7;
-  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+.progress-info {
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+  color: #6c5ce7;
+  text-align: center;
 }

@@ -48,15 +48,20 @@ export async function fetchBookData(bookName) {
                 : null)
             .filter(Boolean);
 
-        return {
-            title: mainBook.title || '',
-            authors: mainBook.authors ? mainBook.authors.join(', ') : '',
-            genres: mainBook.categories ? mainBook.categories.join(', ') : '',
-            description: mainBook.description || '',
-            pageCount: Number.isInteger(mainBook.pageCount) ? mainBook.pageCount : null,
-            averageRating: mainBook.averageRating || 0,
-            images: [...new Set([...googleCovers, ...openLibraryCovers])]
-        };
+            return {
+                title: mainBook.title || '',
+                authors: mainBook.authors ? mainBook.authors.join(', ') : '',
+                genres: mainBook.categories ? mainBook.categories.join(', ') : '',
+                description: mainBook.description || '',
+                pageCount: Number.isInteger(mainBook.pageCount) ? mainBook.pageCount : null,
+                averageRating: typeof mainBook.averageRating === 'number'
+                    ? mainBook.averageRating
+                    : (
+                        googleBooks.find(b => typeof b.volumeInfo?.averageRating === 'number')?.volumeInfo.averageRating || 0
+                    ),
+                images: [...new Set([...googleCovers, ...openLibraryCovers])]
+            };
+            
 
     } catch (error) {
         console.error('Erro ao buscar dados do livro:', error);
