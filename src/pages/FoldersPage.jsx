@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { FaFolder, FaEdit, FaTrash, FaPlus, FaBook, FaTimes } from 'react-icons/fa';
+import { FaFolder, FaEdit, FaTrash, FaPlus, FaBook, FaTimes, FaStar } from 'react-icons/fa';
 import '../styles/folders.css';
 
 export default function FoldersPage() {
@@ -15,8 +16,13 @@ export default function FoldersPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    books: []
+    books: [],
+    notes: ''
   });
+  const [viewingFolder, setViewingFolder] = useState(null);
+  const [folderNotes, setFolderNotes] = useState('');
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,7 +77,7 @@ export default function FoldersPage() {
 
       setShowForm(false);
       setEditingFolder(null);
-      setFormData({ name: '', description: '', books: [] });
+      setFormData({ name: '', description: '', books: [], notes: '' });
     } catch (error) {
       console.error('Erro ao salvar pasta:', error);
       alert('Erro ao salvar! Verifique suas permissões e conexão.');
@@ -98,9 +104,35 @@ export default function FoldersPage() {
     setFormData({
       name: folder.name,
       description: folder.description,
-      books: folder.books || []
+      books: folder.books || [],
+      notes: folder.notes || ''
     });
     setShowForm(true);
+  };
+
+  const handleViewFolder = (folder) => {
+    setViewingFolder(folder);
+    setFolderNotes(folder.notes || '');
+  };
+
+  const handleSaveNotes = async () => {
+    if (!viewingFolder) return;
+    
+    setIsSavingNotes(true);
+    try {
+      const user = auth.currentUser;
+      const folderRef = doc(db, 'users', user.uid, 'folders', viewingFolder.id);
+      await updateDoc(folderRef, { notes: folderNotes });
+      
+      setFolders(folders.map(f => 
+        f.id === viewingFolder.id ? { ...f, notes: folderNotes } : f
+      ));
+      setViewingFolder({ ...viewingFolder, notes: folderNotes });
+    } catch (error) {
+      console.error('Erro ao salvar anotações:', error);
+    } finally {
+      setIsSavingNotes(false);
+    }
   };
 
   const toggleBookSelection = (bookId) => {
@@ -114,16 +146,111 @@ export default function FoldersPage() {
 
   const DeleteConfirmationModal = () => (
     <div className="delete-modal">
-      <div className="delete-modal-content">
+      <div className="modal-content">
         <h3>Confirmar Exclusão</h3>
         <p>Tem certeza que deseja excluir esta pasta permanentemente?</p>
         <div className="modal-actions">
-          <button className="btn-confirm" onClick={handleDelete}>
+          <button className="modal-button confirm" onClick={handleDelete}>
             Confirmar
           </button>
-          <button className="btn-cancel" onClick={() => setShowDeleteModal(false)}>
+          <button className="modal-button cancel" onClick={() => setShowDeleteModal(false)}>
             Cancelar
           </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const FolderViewModal = () => (
+    <div className="folder-view-modal">
+      <div className="folder-view-content">
+        <div className="folder-view-header">
+          <div className="folder-view-title">
+            <FaFolder size={24} />
+            <h2>{viewingFolder?.name}</h2>
+          </div>
+          <button 
+            onClick={() => setViewingFolder(null)} 
+            className="close-btn"
+            aria-label="Fechar"
+          >
+            <FaTimes />
+          </button>
+        </div>
+        
+        {viewingFolder?.description && (
+          <div className="folder-view-description">
+            {viewingFolder.description}
+          </div>
+        )}
+        
+        <h3>Livros nesta pasta ({viewingFolder?.books?.length || 0})</h3>
+        <div className="folder-view-books">
+          {books
+            .filter(book => viewingFolder?.books?.includes(book.id))
+            .map(book => (
+              <div 
+                key={book.id} 
+                className="folder-view-book"
+                onClick={() => navigate(`/collection?editBook=${book.id}`)}
+                style={{ cursor: 'pointer' }}
+              >
+                {book.cover ? (
+                  <img 
+                    src={book.cover} 
+                    alt={book.title} 
+                    className="folder-view-book-cover"
+                  />
+                ) : (
+                  <div className="thumbnail-placeholder">
+                    <FaBook size={32} />
+                  </div>
+                )}
+                <h4 className="folder-view-book-title">{book.title}</h4>
+                {book.status && (
+                  <span className={`status-badge ${book.status.toLowerCase().replace(' ', '-')} folder-view-book-status`}>
+                    {book.status}
+                  </span>
+                )}
+                {book.rating > 0 && (
+                  <div className="folder-view-book-rating">
+                    {[...Array(5)].map((_, i) => (
+                      <FaStar 
+                        key={i} 
+                        color={i < Math.round(book.rating) ? '#ffd700' : '#e0e0e0'} 
+                        size={14} 
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+        </div>
+        
+        <div className="folder-view-notes">
+          <h3>Anotações da Pasta</h3>
+          <textarea
+            value={folderNotes}
+            onChange={(e) => setFolderNotes(e.target.value)}
+            placeholder="Adicione suas anotações sobre esta pasta..."
+          />
+          <div className="form-actions" style={{ marginTop: '1rem' }}>
+            <button 
+              type="button" 
+              className="btn-cancel"
+              onClick={() => setViewingFolder(null)}
+            >
+              Fechar
+            </button>
+            <button 
+              type="button" 
+              className="btn-confirm"
+              onClick={handleSaveNotes}
+              disabled={isSavingNotes}
+            >
+              {isSavingNotes ? 'Salvando...' : 'Salvar Anotações'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -151,7 +278,7 @@ export default function FoldersPage() {
                 onClick={() => {
                   setShowForm(false);
                   setEditingFolder(null);
-                  setFormData({ name: '', description: '', books: [] });
+                  setFormData({ name: '', description: '', books: [], notes: '' });
                 }} 
                 className="close-btn"
                 aria-label="Fechar"
@@ -225,7 +352,7 @@ export default function FoldersPage() {
                   onClick={() => {
                     setShowForm(false);
                     setEditingFolder(null);
-                    setFormData({ name: '', description: '', books: [] });
+                    setFormData({ name: '', description: '', books: [], notes: '' });
                   }}
                 >
                   Cancelar
@@ -244,10 +371,14 @@ export default function FoldersPage() {
 
       <div className="folders-grid">
         {folders.map(folder => (
-          <div key={folder.id} className="folder-card">
+          <div 
+            key={folder.id} 
+            className="folder-card"
+            data-book-count={folder.books?.length || 0}
+          >
             <div className="folder-header">
               <FaFolder className="folder-icon" />
-              <h3>{folder.name} ({folder.books?.length || 0})</h3>
+              <h3>{folder.name}</h3>
             </div>
             
             {folder.description && (
@@ -278,21 +409,29 @@ export default function FoldersPage() {
 
             <div className="folder-actions">
               <button 
-                onClick={() => handleEdit(folder)} 
-                className="btn-primary"
+                onClick={() => handleViewFolder(folder)} 
+                title="Visualizar"
+                aria-label="Visualizar pasta"
               >
-                <FaEdit /> Editar
+                <FaBook className="icon" />
+              </button>
+              <button 
+                onClick={() => handleEdit(folder)} 
+                title="Editar"
+                aria-label="Editar pasta"
+              >
+                <FaEdit className="icon" />
               </button>
               <button 
                 onClick={() => {
-                setSelectedFolderId(folder.id);
-                setShowDeleteModal(true);
-                    }} 
-                    className="btn-primary"
-                    title="Remover"
-                >
-                <FaTrash /> Excluir
-                </button>
+                  setSelectedFolderId(folder.id);
+                  setShowDeleteModal(true);
+                }} 
+                title="Excluir"
+                aria-label="Excluir pasta"
+              >
+                <FaTrash className="icon" />
+              </button>
             </div>
           </div>
         ))}
@@ -306,6 +445,7 @@ export default function FoldersPage() {
       )}
 
       {showDeleteModal && <DeleteConfirmationModal />}
+      {viewingFolder && <FolderViewModal />}
     </div>
   );
 }

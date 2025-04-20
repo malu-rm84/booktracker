@@ -32,7 +32,6 @@ export default function BookForm({ onSubmit, loading }) {
       try {
         const data = await fetchBookData(debouncedSearchTerm);
         if (data) {
-          // Converter URLs para HTTPS
           const secureImages = data.images?.map(url => 
             url.replace('http://', 'https://')
                .replace('http:', 'https:')
@@ -251,10 +250,18 @@ export default function BookForm({ onSubmit, loading }) {
                   </div>
                 </label>
                 <div className="progress-container">
-                  <div className="progress-bar" style={{ width: `${(formData.progress / (formData.pages || 1)) * 100}%` }}></div>
+                  {(formData.progress / (formData.pages || 1)) * 100 > 0 && (
+                    <div 
+                      className="progress-bar" 
+                      style={{ 
+                        width: `${Math.round((formData.progress / (formData.pages || 1)) * 100)}%` 
+                      }}
+                    ></div>
+                  )}
                 </div>
+
                 <div className="progress-info">
-                  Progresso: {Math.round((formData.progress / (formData.pages || 1) * 100 || 0))}%
+                  Progresso: {Math.round((formData.progress / (formData.pages || 1)) * 100) || 0}%
                 </div>
               </div>
             )}

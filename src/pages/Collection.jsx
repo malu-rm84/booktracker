@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { collection, doc, getDocs, deleteDoc, updateDoc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -7,6 +8,9 @@ import '../styles/collection.css';
 import { fetchBookData } from '../services/bookApi';
 
 export default function Collection() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const editBookId = searchParams.get('editBook');
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -56,6 +60,13 @@ export default function Collection() {
 
         setBooks(booksData);
         extractGenres(booksData);
+
+        if (editBookId) {
+          const bookToEdit = booksData.find(book => book.id === editBookId);
+          if (bookToEdit) {
+            handleEditClick(bookToEdit);
+          }
+        }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -69,16 +80,21 @@ export default function Collection() {
     };
 
     fetchBooks();
-  }, []);
+  }, [editBookId]);
 
   const handleCoverSearch = async () => {
     try {
+      if (!formData.title.trim()) {
+        alert('Digite um título para buscar capas');
+        return;
+      }
+      
       setIsSearchingCovers(true);
       const data = await fetchBookData(formData.title);
       
       const validCovers = data?.images?.map(url => 
-        url.replace('http://', 'https://') // Forçar HTTPS
-           .replace('http:', 'https:') // Extra replace para garantir
+        url.replace('http://', 'https://')
+           .replace('http:', 'https:')
       ).filter(url => 
         url.startsWith('https://') && 
         (url.includes('googleapis') || 
@@ -93,7 +109,7 @@ export default function Collection() {
       setIsSearchingCovers(false);
     }
   };
-  
+
   const handleCoverChange = (newCover) => {
     setFormData(prev => ({ ...prev, cover: newCover }));
     setShowCoverSelector(false);
@@ -161,6 +177,7 @@ export default function Collection() {
       endDate: book.endDate || ''  
     });
     setShowEditModal(true);
+    navigate(`/collection?editBook=${book.id}`);
   };
 
   const handleFormChange = (e) => {
@@ -189,6 +206,7 @@ export default function Collection() {
         book.id === selectedBook.id ? { ...book, ...formData } : book
       ));
       setShowEditModal(false);
+      navigate('/collection');
     } catch (error) {
       setError(error.message);
       setShowEditModal(false);
@@ -326,6 +344,7 @@ export default function Collection() {
                 </div>
               )}
             </div>
+
             <div className="form-group">
               <label>Título</label>
               <input 
@@ -336,6 +355,7 @@ export default function Collection() {
                 className="form-input" 
               />
             </div>
+
             <div className="form-group">
               <label>Autor</label>
               <input 
@@ -346,6 +366,7 @@ export default function Collection() {
                 className="form-input" 
               />
             </div>
+
             <div className="form-group">
               <label>Gênero</label>
               <input 
@@ -356,6 +377,7 @@ export default function Collection() {
                 className="form-input" 
               />
             </div>
+
             <div className="form-group">
               <label>Total de Páginas</label>
               <input
@@ -374,6 +396,7 @@ export default function Collection() {
                 {formData.synopsis || 'Nenhuma sinopse disponível'}
               </div>
             </div>
+
             <div className="form-group">
               <label>Status</label>
               <select
@@ -405,7 +428,6 @@ export default function Collection() {
                 value={formData.startDate}
                 onChange={handleFormChange}
                 className="form-input"
-                placeholder="dd/mm/aaaa"
               />
             </div>
 
@@ -418,7 +440,6 @@ export default function Collection() {
                   value={formData.endDate}
                   onChange={handleFormChange}
                   className="form-input"
-                  placeholder="dd/mm/aaaa"
                 />
               </div>
             )}
@@ -427,28 +448,29 @@ export default function Collection() {
               <div className="form-group">
                 <label>Página Atual</label>
                 <div className="progress-input-container">
-                <input
-                  type="number"
-                  value={formData.pages || ''}
-                  onChange={(e) => {
-                    const newPages = parseInt(e.target.value) || 0;
-                    const updates = { pages: newPages };
-                    
-                    if (formData.status === 'Concluído') {
-                      updates.progress = newPages;
-                    }
-                    
-                    setFormData({ ...formData, ...updates });
-                  }}
-                  className="number-input"
-                />
+                  <input
+                    type="number"
+                    value={formData.progress || ''}
+                    onChange={(e) => {
+                      const newProgress = Math.min(
+                        parseInt(e.target.value) || 0,
+                        formData.pages
+                      );
+                      setFormData({ ...formData, progress: newProgress });
+                    }}
+                    className="form-input"
+                    min="0"
+                    max={formData.pages}
+                  />
                   <span className="pages-total">/ {formData.pages}</span>
                 </div>
                 <div className="progress-container">
-                  <div 
-                    className="progress-bar" 
-                    style={{ width: `${Math.round((formData.progress / formData.pages) * 100) || 0}%` }}
-                  ></div>
+                  {Math.round((formData.progress / formData.pages) * 100) > 0 && (
+                    <div 
+                      className="progress-bar" 
+                      style={{ width: `${Math.round((formData.progress / formData.pages) * 100) || 0}%` }}
+                    ></div>
+                  )}
                 </div>
                 <div className="progress-info">
                   Progresso: {Math.round((formData.progress / formData.pages) * 100 || 0)}%
@@ -487,8 +509,16 @@ export default function Collection() {
               placeholder="Adicione suas anotações..."
             />
           </div>
+
           <div className="modal-actions">
-            <button type="button" className="modal-button cancel" onClick={() => setShowEditModal(false)}>
+            <button 
+              type="button" 
+              className="modal-button cancel" 
+              onClick={() => {
+                setShowEditModal(false);
+                navigate('/collection');
+              }}
+            >
               Cancelar
             </button>
             <button type="submit" className="modal-button confirm">
@@ -560,7 +590,7 @@ export default function Collection() {
             {filteredBooks.length > 0 ? (
               filteredBooks.map(book => (
                 <tr key={book.id}>
-                  <td>
+                  <td data-label="Capa">
                     {book.cover ? (
                       <img src={book.cover} alt={book.title} className="book-cover" />
                     ) : (
@@ -569,22 +599,24 @@ export default function Collection() {
                       </div>
                     )}
                   </td>
-                  <td>{book.title}</td>
-                  <td>{book.author}</td>
-                  <td>
+                  <td data-label="Título">{book.title}</td>
+                  <td data-label="Autor">{book.author}</td>
+                  <td data-label="Status">
                     <span className={`status-badge ${book.status.toLowerCase().replace(' ', '-')}`}>
                       {book.status}
                     </span>
                   </td>
-                  <td>{renderRatingStars(book.rating)}</td>
-                  <td>
+                  <td data-label="Avaliação">{renderRatingStars(book.rating)}</td>
+                  <td data-label="Progresso">
                     {(book.status === 'Em andamento' || book.status === 'Abandonado' || book.status === 'Concluído') && (
                       <>
                         <div className="progress-container">
-                          <div 
-                            className="progress-bar" 
-                            style={{ width: `${Math.round((book.progress / book.pages) * 100) || 0}%` }}
-                          ></div>
+                          {Math.round((book.progress / book.pages) * 100) > 0 && (
+                            <div 
+                              className="progress-bar" 
+                              style={{ width: `${Math.round((book.progress / book.pages) * 100)}%` }}
+                            ></div>
+                          )}
                         </div>
                         <div className="progress-info">
                           {Math.round((book.progress / book.pages) * 100) || 0}%
@@ -592,7 +624,7 @@ export default function Collection() {
                       </>
                     )}
                   </td>
-                  <td className="actions-cell">
+                  <td className="actions-cell" data-label="Ações">
                     <button onClick={() => handleFavorite(book.id)} className="icon-button" title="Favoritar">
                       {book.favorite ? <FaHeart /> : <FaRegHeart />}
                     </button>

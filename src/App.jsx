@@ -39,25 +39,14 @@ function ProtectedRoute() {
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      console.log('Status de autenticação:', user ? 'Autenticado' : 'Não autenticado');
       setAuthChecked(true);
     });
 
     return () => unsubscribe();
   }, []);
 
-  if (!authChecked) {
-    return <div className="loading">Carregando...</div>;
-  }
+  if (!authChecked) return <div className="loading">Carregando...</div>;
+  if (!auth.currentUser) return <Navigate to="/login" replace />;
 
-  if (!auth.currentUser) {
-    console.log('Redirecionando para login');
-    return <Navigate to="/login" replace />;
-  }
-
-  return (
-    <ErrorBoundary>
-      <Outlet />
-    </ErrorBoundary>
-  );
+  return <Outlet />;
 }

@@ -1,3 +1,12 @@
+/* Arquivo folders.css completo */
+:root {
+  --roxo-principal: #6c5ce7;
+  --roxo-escuro: #4834a4;
+  --fundo-claro: #f8f9fe;
+  --borda: #e6e4ff;
+  --texto-escuro: #2d3436;
+}
+
 .folders-container {
   padding: 2rem;
   max-width: 1200px;
@@ -17,73 +26,211 @@
   gap: 1.5rem;
 }
 
+/* Cards de Pasta Atualizados */
 .folder-card {
-  background: white;
-  border-radius: 10px;
+  background: linear-gradient(135deg, #ffffff 0%, #f9f7ff 100%);
+  border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(108, 92, 231, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid #e6e4ff;
   position: relative;
-  transition: transform 0.2s;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 300px;
 }
 
 .folder-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(108, 92, 231, 0.15);
+  border-color: var(--roxo-principal);
+}
+
+.folder-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--roxo-principal) 0%, #a89df0 100%);
+  opacity: 0.3;
+  transition: opacity 0.3s;
+}
+
+.folder-card:hover::before {
+  opacity: 1;
+}
+
+.folder-card::after {
+  content: attr(data-book-count);
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(108, 92, 231, 0.1);
+  color: var(--roxo-principal);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
 .folder-header {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.folder-header h3 {
+  margin: 0;
+  color: var(--roxo-escuro);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .folder-icon {
-  font-size: 1.5rem;
+  font-size: 2rem;
   color: var(--roxo-principal);
+  background: rgba(108, 92, 231, 0.1);
+  padding: 0.5rem;
+  border-radius: 10px;
+  flex-shrink: 0;
 }
 
 .folder-description {
-  color: #666;
-  margin-bottom: 1.5rem;
+  color: #555;
   font-size: 0.95rem;
-}
-
-.folder-books {
-  margin-top: 1rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .books-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 0.75rem;
+  margin-top: auto;
 }
 
 .book-thumbnail {
   width: 100%;
-  height: 90px;
+  height: 80px;
   object-fit: cover;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  transition: transform 0.2s;
+}
+
+.book-thumbnail:hover {
+  transform: scale(1.05);
 }
 
 .thumbnail-placeholder {
   width: 100%;
-  height: 90px;
+  height: 80px;
   background: var(--fundo-claro);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--roxo-principal);
 }
 
 .folder-actions {
   display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 1rem;
+  justify-content: flex-end;
+}
+
+.folder-actions button {
+  background: rgba(108, 92, 231, 0.1);
+  color: var(--roxo-principal);
+  border: 2px solid rgba(108, 92, 231, 0.2);
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.folder-actions button:hover {
+  background: var(--roxo-principal);
+  color: white;
+  border-color: transparent;
+  transform: scale(1.1);
+}
+
+.book-thumbnail,
+.thumbnail-placeholder,
+.books-list > * {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    filter: none !important;
 }
 
 /* Modal de Formulário */
+.folder-form-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+  padding: 2rem 1rem;
+  overflow-y: auto;
+}
+
+.folder-form-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 95%;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--roxo-principal);
+  padding: 0.5rem;
+  transition: transform 0.2s;
+}
+
+.close-btn:hover {
+  transform: rotate(90deg);
+}
+
 .form-group {
   margin-bottom: 1.5rem;
 }
@@ -147,54 +294,6 @@
 .btn-cancel:hover {
   background: var(--fundo-claro);
   transform: translateY(-2px);
-}
-
-/* Modal Responsivo */
-.folder-form-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  z-index: 1000;
-  backdrop-filter: blur(3px);
-  padding: 2rem 1rem;
-  overflow-y: auto;
-}
-
-.folder-form-content {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  max-width: 600px;
-  width: 95%;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.form-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--roxo-principal);
-  padding: 0.5rem;
-  transition: transform 0.2s;
-}
-
-.close-btn:hover {
-  transform: rotate(90deg);
 }
 
 /* Seleção de Livros */
@@ -288,7 +387,32 @@
   justify-content: center;
 }
 
-/* Botões */
+.modal-button {
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.3s, transform 0.2s;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.modal-button.confirm {
+  background: #ff4444;
+  color: white;
+}
+
+.modal-button.cancel {
+  background: var(--roxo-principal);
+  color: white;
+}
+
+.modal-button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+/* Botões Principais */
 .btn-primary {
   background: var(--roxo-principal);
   color: white;
@@ -308,24 +432,7 @@
   transform: translateY(-2px);
 }
 
-.btn-confirm {
-  background: var(--roxo-principal);
-  color: white;
-}
-
-.btn-cancel {
-  background: #666;
-  color: white;
-}
-
-.btn-confirm:hover {
-  background: var(--roxo-escuro);
-}
-
-.btn-cancel:hover {
-  background: #444;
-}
-
+/* Estado Vazio */
 .empty-state {
   text-align: center;
   padding: 4rem;
@@ -333,7 +440,171 @@
   opacity: 0.6;
 }
 
-/* Media Queries para Responsividade */
+/* Modal de Visualização */
+.folder-view-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.folder-view-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+.folder-view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.folder-view-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--roxo-principal);
+}
+
+.folder-view-title h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.folder-view-description {
+  color: #555;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f9f7ff;
+  border-radius: 8px;
+  border-left: 4px solid var(--roxo-principal);
+}
+
+.folder-view-books {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.folder-view-book {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: 1px solid #eee;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.folder-view-book:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.2);
+  z-index: 1;
+}
+
+.folder-view-book::after {
+  content: "Editar";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(108, 92, 231, 0.9);
+  color: white;
+  text-align: center;
+  padding: 4px;
+  font-size: 0.8rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.folder-view-book:hover::after {
+  opacity: 1;
+}
+
+.folder-view-book-cover {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 0.8rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.folder-view-book-title {
+  font-weight: 600;
+  color: var(--roxo-escuro);
+  font-size: 0.95rem;
+  margin: 0;
+  text-align: center;
+}
+
+.folder-view-book-status {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 12px;
+  display: inline-block;
+  width: fit-content;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.folder-view-book-rating {
+  display: flex;
+  gap: 0.2rem;
+  margin: 0.5rem auto;
+  justify-content: center;
+}
+
+.folder-view-notes {
+  margin-top: 2rem;
+}
+
+.folder-view-notes h3 {
+  color: var(--roxo-principal);
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.folder-view-notes textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 1rem;
+  border: 2px solid #e6e4ff;
+  border-radius: 8px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: border-color 0.3s;
+}
+
+.folder-view-notes textarea:focus {
+  border-color: var(--roxo-principal);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2);
+}
+
+/* Media Queries */
 @media (max-width: 768px) {
   .folders-container {
     padding: 1.5rem 1rem;
@@ -355,89 +626,50 @@
     border-radius: 10px;
   }
   
-  .form-header {
-    margin-bottom: 1rem;
-  }
-  
-  .form-group {
-    margin-bottom: 1rem;
-  }
-  
-  .books-selection {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 0.75rem;
-  }
-  
-  .book-select-cover {
-    height: 130px;
-  }
-  
-  .book-select-title {
+  .folder-card::after {
+    top: 10px;
+    right: 10px;
     font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
   }
   
-  .form-actions {
-    flex-direction: column-reverse;
-    gap: 0.75rem;
-  }
-  
-  .form-actions button {
-    width: 100%;
-    padding: 0.75rem;
-  }
-  
-  .book-select-cover {
-    height: 140px;
-  }
-  
-  .delete-modal-content {
-    padding: 1.5rem;
-  }
-  
-  .modal-actions {
-    flex-direction: column-reverse;
-    gap: 0.75rem;
-  }
-  
-  .modal-actions button {
-    width: 100%;
+  .folder-view-books {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
 }
 
 @media (max-width: 480px) {
-  .folders-container {
-    padding: 1rem 0.75rem;
-  }
-  
   .folder-card {
     padding: 1.25rem;
+    min-height: 280px;
   }
   
-  .folder-form-content {
+  .folder-header h3 {
+    font-size: 1.1rem;
+  }
+  
+  .folder-icon {
+    font-size: 1.8rem;
+    padding: 0.4rem;
+  }
+  
+  .books-list {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  }
+  
+  .book-thumbnail {
+    height: 70px;
+  }
+  
+  .folder-view-books {
+    grid-template-columns: 1fr;
+  }
+  
+  .folder-view-content {
     padding: 1rem;
-  }
-  
-  .books-selection {
-    grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
-    gap: 0.5rem;
-  }
-  
-  .book-select-cover {
-    height: 110px;
-  }
-  
-  .folder-actions {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
-  .folder-actions button {
-    width: 100%;
-    justify-content: center;
   }
 }
 
-/* Fix para telas menores */
 @media (max-height: 700px) {
   .folder-form-modal {
     align-items: flex-start;
